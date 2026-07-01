@@ -30,6 +30,10 @@ GCC_REQUIRED_VERSION ?= 13.3.1
 ifeq ($(OSFAMILY)-$(ARCHFAMILY), linux-x86_64)
   ARM_SDK_URL := https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi.tar.xz
   DL_CHECKSUM = 0601a9588bc5b9c99ad2b56133b7f118
+else ifeq ($(OSFAMILY)-$(ARCHFAMILY), linux-aarch64)
+  # Prefer a locally installed toolchain on Linux aarch64 (e.g. Debian/Ubuntu packages).
+  ARM_SDK_URL :=
+  DL_CHECKSUM :=
 else ifeq ($(OSFAMILY)-$(ARCHFAMILY), macosx-x86_64)
   ARM_SDK_URL := https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-darwin-x86_64-arm-none-eabi.tar.xz
   DL_CHECKSUM = 4bb141e44b831635fde4e8139d470f1f
@@ -61,12 +65,14 @@ arm_sdk_install: | $(TOOLS_DIR)
 arm_sdk_install: arm_sdk_download $(SDK_INSTALL_MARKER)
 
 $(SDK_INSTALL_MARKER): $(DL_DIR)/$(ARM_SDK_FILE)
+ifneq ($(strip $(DL_CHECKSUM)),)
         # verify ckecksum first
 	@checksum=$$(md5sum "$<" | awk '{print $$1}'); \
 	if [ "$$checksum" != "$(DL_CHECKSUM)" ]; then \
 		echo "$@ Checksum mismatch! Expected $(DL_CHECKSUM), got $$checksum."; \
 		exit 1; \
 	fi
+endif
 ifeq ($(OSFAMILY), windows)
 	$(V1) unzip -q -d $(TOOLS_DIR) "$<"
 else
