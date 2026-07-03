@@ -314,6 +314,13 @@ void pgResetFn_serialConfig(serialConfig_t *serialConfig)
     }
 #endif
 
+#ifdef GOPRO_STATUS_UART
+    serialPortConfig_t *goproStatusUartConfig = serialFindPortConfigurationMutable(GOPRO_STATUS_UART);
+    if (goproStatusUartConfig) {
+        goproStatusUartConfig->functionMask = FUNCTION_OSD_GOPRO_STATUS;
+    }
+#endif
+
 #ifdef SERIALRX_UART
     serialPortConfig_t *serialRxUartConfig = serialFindPortConfigurationMutable(SERIALRX_UART);
     if (serialRxUartConfig) {

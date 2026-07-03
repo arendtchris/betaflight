@@ -147,6 +147,7 @@
 #if ENABLE_OSD_CUSTOM_TEXT
 #include "osd/osd_custom_text.h"
 #endif
+#include "osd/osd_gopro_status.h"
 
 #include "pg/adc.h"
 #include "pg/beeper.h"
@@ -805,6 +806,7 @@ void initPhase3(void)
 #if ENABLE_OSD_CUSTOM_TEXT
     osdCustomTextInit();
 #endif
+    osdGoproStatusInit();
 
 #ifdef USE_LED_STRIP
     ledStripInit();

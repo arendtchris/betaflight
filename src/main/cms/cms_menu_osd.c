@@ -180,6 +180,12 @@ const OSD_Entry menuOsdActiveElemsEntries[] =
 #endif
 #if ENABLE_OSD_CUSTOM_TEXT
     {"SERIAL TEXT",        OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_CUSTOM_SERIAL_TEXT]},
+    {"GOPRO STATUS",       OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_STATUS]},
+    {"GOPRO BATTERY",      OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_BATTERY]},
+    {"GOPRO RECORDING",    OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_RECORDING]},
+    {"GOPRO REMAINING",    OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_SIGNAL]},
+    {"GOPRO CAMERA",       OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_CAMERA_NAME]},
+    {"GOPRO TEMP",         OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_TEMPERATURE]},
 #endif
     {"BACK",               OME_Back,    NULL, NULL},
     {NULL,                 OME_END,     NULL, NULL}

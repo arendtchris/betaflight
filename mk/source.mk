@@ -272,6 +272,7 @@ COMMON_SRC = \
             io/pidaudio.c \
             osd/osd.c \
             osd/osd_custom_text.c \
+            osd/osd_gopro_status.c \
             osd/osd_elements.c \
             osd/osd_warnings.c \
             sensors/barometer.c \

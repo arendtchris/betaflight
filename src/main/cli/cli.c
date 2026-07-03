@@ -3840,6 +3840,60 @@ static void cliBoardName(const char *cmdName, char *cmdline)
     }
 }
 
+static void cliGoproUart(const char *cmdName, char *cmdline)
+{
+    if (isEmpty(cmdline)) {
+        const serialPortConfig_t *cfg = findSerialPortConfig(FUNCTION_OSD_GOPRO_STATUS);
+        if (!cfg) {
+            cliPrintLinef("gopro_uart NONE");
+        } else {
+            cliPrintLinef("gopro_uart %s %ld", serialName(cfg->identifier, "INVALID"), baudRates[cfg->gps_baudrateIndex]);
+        }
+        return;
+    }
+
+    char *ptr = cmdline;
+    char *tok = strsep(&ptr, " ");
+    if (!tok || *tok == '\0') {
+        cliShowParseError(cmdName);
+        return;
+    }
+
+    serialPortIdentifier_e identifier = findSerialPortByName(tok, strcasecmp);
+    if (identifier == SERIAL_PORT_NONE) {
+        char *eptr;
+        identifier = strtoul(tok, &eptr, 10);
+        if (*eptr) {
+            cliShowParseError(cmdName);
+            return;
+        }
+    }
+
+    serialPortConfig_t *currentConfig = serialFindPortConfigurationMutable(identifier);
+    if (!currentConfig) {
+        cliShowParseError(cmdName);
+        return;
+    }
+
+    tok = strsep(&ptr, " ");
+    if (!tok || *tok == '\0') {
+        cliShowInvalidArgumentCountError(cmdName);
+        return;
+    }
+
+    long baud = strtol(tok, NULL, 10);
+    baudRate_e baudIndex = lookupBaudRateIndex((uint32_t)baud);
+    if (baudIndex == BAUD_AUTO || baudRates[baudIndex] != (uint32_t)baud) {
+        cliPrintErrorLinef(cmdName, "INVALID BAUD: %ld", baud);
+        return;
+    }
+
+    currentConfig->functionMask |= FUNCTION_OSD_GOPRO_STATUS;
+    currentConfig->gps_baudrateIndex = baudIndex;
+
+    cliPrintLinef("gopro_uart %s %ld", serialName(currentConfig->identifier, "INVALID"), baudRates[currentConfig->gps_baudrateIndex]);
+}
+
 static void printManufacturerId(dumpFlags_t dumpMask)
 {
     if (!(dumpMask & DO_DIFF) || strlen(getManufacturerId())) {
@@ -8230,6 +8284,7 @@ const clicmd_t cmdTable[] = {
 #ifdef USE_GPS
     CLI_COMMAND_DEF("gpspassthrough", "passthrough gps to serial", NULL, cliGpsPassthrough),
 #endif
+    CLI_COMMAND_DEF("gopro_uart", "assign GoPro UART", "<port> <gpsBaud>", cliGoproUart),
 #if defined(USE_GYRO_REGISTER_DUMP) && !ENABLE_SIMULATOR
     CLI_COMMAND_DEF("gyroregisters", "dump gyro config registers contents", NULL, cliDumpGyroRegisters),
 #endif

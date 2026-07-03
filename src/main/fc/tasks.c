@@ -84,6 +84,7 @@
 #if ENABLE_OSD_CUSTOM_TEXT
 #include "osd/osd_custom_text.h"
 #endif
+#include "osd/osd_gopro_status.h"
 
 #include "pg/rx.h"
 #include "pg/motor.h"
@@ -494,6 +495,7 @@ task_attribute_t task_attributes[TASK_COUNT] = {
 #if ENABLE_OSD_CUSTOM_TEXT
     [TASK_OSD_CUSTOM_TEXT] = DEFINE_TASK("OSD_CTEXT", NULL, NULL, osdCustomTextUpdate, TASK_PERIOD_HZ(100), TASK_PRIORITY_LOW),
 #endif
+    [TASK_OSD_GOPRO_STATUS] = DEFINE_TASK("OSD_GPRO", NULL, NULL, osdGoproStatusUpdate, TASK_PERIOD_HZ(100), TASK_PRIORITY_LOW),
 
 #if ENABLE_DRONECAN
     [TASK_DRONECAN] = DEFINE_TASK("DRONECAN", NULL, NULL, dronecanUpdate, TASK_PERIOD_HZ(50), TASK_PRIORITY_LOW),
@@ -698,6 +700,7 @@ void tasksInit(void)
 #if ENABLE_OSD_CUSTOM_TEXT
     setTaskEnabled(TASK_OSD_CUSTOM_TEXT, true);
 #endif
+    setTaskEnabled(TASK_OSD_GOPRO_STATUS, true);
 
 #if ENABLE_DRONECAN
     setTaskEnabled(TASK_DRONECAN, dronecanIsInitialised());
