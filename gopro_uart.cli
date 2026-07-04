@@ -1,4 +1,4 @@
-gopro_uart UART6 115200
+gopro_uart UART2 115200
 set osd_profile = 1
 set osd_gopro_status_pos = 2389
 set osd_gopro_battery_pos = 2421
