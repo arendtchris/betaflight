@@ -812,7 +812,7 @@ static void osdElementGoproSignal(osdElementParms_t *element)
 static void osdElementGoproCameraName(osdElementParms_t *element)
 {
     char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "CAM", value, sizeof(value)){
+    if (osdParseGoproValue(osdGoproStatusGet(), "CAM", value, sizeof(value))){
         tfp_sprintf(element->buff, "Gopro: %s", value);
     } else {
         strcpy(element->buff, "Gopro:");
@@ -822,7 +822,7 @@ static void osdElementGoproCameraName(osdElementParms_t *element)
 static void osdElementGoproTemperature(osdElementParms_t *element)
 {
     char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "TEMP", value, sizeof(value))  {
+    if (osdParseGoproValue(osdGoproStatusGet(), "TEMP", value, sizeof(value))) {
         tfp_sprintf(element->buff, "G_Temp: %s", value);
     } else {
         strcpy(element->buff, "G_Temp:");
