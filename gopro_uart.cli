@@ -1,15 +1,9 @@
-gopro_uart UART6 57600
-set osd_gopro_status_pos 10
-set osd_gopro_battery_pos 11
-set osd_gopro_recording_pos 12
-#set osd_gopro_signal_pos 13
-
-set osd_gopro_camera_pos 14
-set osd_gopro_temperature_pos 15
-
+gopro_uart UART6 115200
+set osd_profile = 1
+set osd_gopro_status_pos = 2389
+set osd_gopro_battery_pos = 2421
+set osd_gopro_recording_pos = 2453
+set osd_gopro_signal_pos = 2485
+set osd_gopro_camera_pos = 2517
+set osd_gopro_temperature_pos = 2549
 save
-gopro_uart
-
-
-## oder 
-serial UART6 2097152 115200 57600 0 115200
