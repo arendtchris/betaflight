@@ -773,10 +773,9 @@ static void osdElementGoproStatus(osdElementParms_t *element)
 {
     char value[OSD_ELEMENT_BUFFER_LENGTH];
     if (osdParseGoproValue(osdGoproStatusGet(), "STATUS", value, sizeof(value))) {
-        strncpy(element->buff, value, OSD_ELEMENT_BUFFER_LENGTH - 1);
-        element->buff[OSD_ELEMENT_BUFFER_LENGTH - 1] = '\0';
+         tfp_sprintf(element->buff, "Status: %s", value);
     } else {
-        strcpy(element->buff, "IDLE");
+         strcpy(element->buff, "Status:");
     }
 }
 
@@ -784,9 +783,9 @@ static void osdElementGoproBattery(osdElementParms_t *element)
 {
     char value[OSD_ELEMENT_BUFFER_LENGTH];
     if (osdParseGoproValue(osdGoproStatusGet(), "BAT", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "BAT %s", value);
+        tfp_sprintf(element->buff, "G_Bat: %s", value);
     } else {
-        strcpy(element->buff, "BAT ---");
+        strcpy(element->buff, "G_Bat");
     }
 }
 
@@ -794,9 +793,9 @@ static void osdElementGoproRecording(osdElementParms_t *element)
 {
     char value[OSD_ELEMENT_BUFFER_LENGTH];
     if (osdParseGoproValue(osdGoproStatusGet(), "REC", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "REC %s", value);
+        tfp_sprintf(element->buff, "G_Rec: %s", value);
     } else {
-        strcpy(element->buff, "REC ---");
+        strcpy(element->buff, "G_Rec:");
     }
 }
 
@@ -804,33 +803,29 @@ static void osdElementGoproSignal(osdElementParms_t *element)
 {
     char value[OSD_ELEMENT_BUFFER_LENGTH];
     if (osdParseGoproValue(osdGoproStatusGet(), "REM", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "REM %s", value);
-    } else if (osdParseGoproValue(osdGoproStatusGet(), "SIG", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "SIG %s", value);
+        tfp_sprintf(element->buff, "G_Time: %s", value);
     } else {
-        strcpy(element->buff, "REM ---");
+        strcpy(element->buff, "G_Time:");
     }
 }
 
 static void osdElementGoproCameraName(osdElementParms_t *element)
 {
     char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "CAM", value, sizeof(value)) ||
-        osdParseGoproValue(osdGoproStatusGet(), "CAMERA", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "CAM %s", value);
+    if (osdParseGoproValue(osdGoproStatusGet(), "CAM", value, sizeof(value)){
+        tfp_sprintf(element->buff, "Gopro: %s", value);
     } else {
-        strcpy(element->buff, "CAM ---");
+        strcpy(element->buff, "Gopro:");
     }
 }
 
 static void osdElementGoproTemperature(osdElementParms_t *element)
 {
     char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "TMP", value, sizeof(value)) ||
-        osdParseGoproValue(osdGoproStatusGet(), "TEMP", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "TMP %s", value);
+    if (osdParseGoproValue(osdGoproStatusGet(), "TEMP", value, sizeof(value))  {
+        tfp_sprintf(element->buff, "G_Temp: %s", value);
     } else {
-        strcpy(element->buff, "TMP ---");
+        strcpy(element->buff, "G_Temp:");
     }
 }
 #endif

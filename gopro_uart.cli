@@ -1,9 +1,11 @@
 gopro_uart UART2 115200
 set osd_profile = 1
-set osd_gopro_status_pos = 2389
-set osd_gopro_battery_pos = 2421
-set osd_gopro_recording_pos = 2453
-set osd_gopro_signal_pos = 2485
-set osd_gopro_camera_pos = 2517
-set osd_gopro_temperature_pos = 2549
+
+set osd_gopro_status_pos = 2179
+set osd_gopro_battery_pos = 2211
+set osd_gopro_recording_pos = 2339
+set osd_gopro_signal_pos = 2307
+set osd_gopro_camera_pos = 2275
+set osd_gopro_temperature_pos = 2243
+
 save
