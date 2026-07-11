@@ -9,3 +9,8 @@ set osd_gopro_camera_pos = 2275
 set osd_gopro_temperature_pos = 2243
 
 save
+
+
+
+set osd_gopro_aux_channel = 1
+save

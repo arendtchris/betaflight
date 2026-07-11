@@ -28,6 +28,8 @@
 #include "drivers/serial.h"
 #include "io/serial.h"
 #include "common/time.h"
+#include "rx/rx.h"
+#include "osd/osd.h"
 
 #define GOPRO_INPUT_BUFFER_SIZE 64
 #define GOPRO_DISPLAY_BUFFER_SIZE 32
@@ -56,7 +58,7 @@ bool osdGoproStatusInit(void)
         NULL,
         NULL,
         baudrate,
-        MODE_RX,
+            MODE_RXTX,
         SERIAL_NOT_INVERTED
     );
 
@@ -95,6 +97,32 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
             // Ignore
         } else if (c != 0x00 && goproInputPos < (GOPRO_INPUT_BUFFER_SIZE - 1)) {
             goproInputBuffer[goproInputPos++] = c;
+        }
+    }
+
+    // AUX -> GoPro control: send start/stop on AUX toggle
+    {
+        // aux channel configured in OSD settings is 1-based for AUX1.., convert to rcData index
+        const uint8_t auxCfg = osdConfig()->gopro_aux_channel; // 1..N
+        if (auxCfg > 0) {
+            const int auxIndex = auxCfg + NON_AUX_CHANNEL_COUNT - 1;
+            static bool prevAuxHigh = false;
+            const float mid = rxConfig()->midrc;
+            const bool curHigh = rcData[auxIndex] > mid;
+
+            if (curHigh && !prevAuxHigh) {
+                const char *startCmd = "REC=REC_ON\n";
+                serialWriteBuf(goproSerialPort, (const uint8_t *)startCmd, strlen(startCmd));
+            } else if (!curHigh && prevAuxHigh) {
+                const char *stopCmd = "REC=REC_OFF\n";
+                serialWriteBuf(goproSerialPort, (const uint8_t *)stopCmd, strlen(stopCmd));
+            }else
+            {
+                  const char *stopCmd = "REC=REC_IDLE\n";
+                serialWriteBuf(goproSerialPort, (const uint8_t *)stopCmd, strlen(stopCmd));
+
+            }
+            prevAuxHigh = curHigh;
         }
     }
 }

@@ -159,7 +159,7 @@ escSensorData_t *osdEscDataCombined;
 
 STATIC_ASSERT(OSD_POS_MAX == OSD_POS(63,31), OSD_POS_MAX_incorrect);
 
-PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 13);
+PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 14);
 
 PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 3);
 
@@ -414,6 +414,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
     osdConfig->aux_channel = 1;
     osdConfig->aux_scale = 200;
     osdConfig->aux_symbol = 'A';
+    osdConfig->gopro_aux_channel = 1;
 
     // Make it obvious on the configurator that the FC doesn't support HD
 #ifdef USE_OSD_HD

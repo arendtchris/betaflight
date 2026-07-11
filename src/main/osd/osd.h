@@ -380,6 +380,7 @@ typedef struct osdConfig_s {
     uint8_t aux_channel;
     uint16_t aux_scale;
     uint8_t aux_symbol;
+    uint8_t gopro_aux_channel; /* AUX channel to control GoPro UART (1..N) */
     uint8_t canvas_cols;                      // Canvas dimensions for HD display
     uint8_t canvas_rows;
 #ifdef USE_OSD_QUICK_MENU
