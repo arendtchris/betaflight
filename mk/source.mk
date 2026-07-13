@@ -65,6 +65,7 @@ COMMON_SRC = \
             common/explog_approx.c \
             common/filter.c \
             common/gps_conversion.c \
+            common/gopro_json.c \
             common/huffman.c \
             common/huffman_table.c \
             common/maths.c \
@@ -228,6 +229,7 @@ COMMON_SRC = \
             cms/cms_menu_blackbox.c \
             cms/cms_menu_failsafe.c \
             cms/cms_menu_firmware.c \
+            cms/cms_menu_gopro.c \
             cms/cms_menu_gps_rescue_multirotor.c \
             cms/cms_menu_gps_rescue_wing.c \
             cms/cms_menu_gps_lap_timer.c \

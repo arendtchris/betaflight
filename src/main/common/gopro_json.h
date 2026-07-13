@@ -20,11 +20,11 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
-#include "common/time.h"
-
-bool osdGoproStatusInit(void);
-void osdGoproStatusUpdate(timeUs_t currentTimeUs);
-const char *osdGoproStatusGet(void);
-bool osdGoproStatusSendCommand(const char *command);
+bool goproJsonParseUint16(const char *text, uint16_t *out);
+bool goproJsonExtractValue(const char *rangeStart, const char *rangeEnd, const char *jsonKey, char *out, size_t outSize);
+bool goproJsonExtractObjectRange(const char *jsonText, const char *objectName, const char **objectStart, const char **objectEnd);
+bool goproJsonExtractUint16(const char *rangeStart, const char *rangeEnd, const char *jsonKey, uint16_t *out);
+bool goproJsonGetSettingOption(const char *jsonText, uint16_t settingId, uint16_t *out);

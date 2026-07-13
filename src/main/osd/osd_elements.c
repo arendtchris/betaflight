@@ -131,6 +131,7 @@
 
 #include "common/axis.h"
 #include "common/maths.h"
+#include "common/gopro_json.h"
 #include "common/printf.h"
 #include "common/typeconversion.h"
 #include "common/utils.h"
@@ -733,99 +734,19 @@ static void osdElementCustomSerialText(osdElementParms_t *element)
     }
 }
 
-static bool osdParseGoproValue(const char *text, const char *key, char *out, size_t outSize)
-{
-    if (!text || !key || !out || outSize == 0) {
-        return false;
-    }
-
-    const char *cursor = text;
-    while (cursor && *cursor) {
-        const char *entryEnd = strpbrk(cursor, ";,|");
-        size_t entryLen = entryEnd ? (size_t)(entryEnd - cursor) : strlen(cursor);
-
-        if (entryLen > 0) {
-            const char *eq = memchr(cursor, '=', entryLen);
-            if (eq) {
-                size_t keyLen = (size_t)(eq - cursor);
-                if (keyLen == strlen(key) && strncasecmp(cursor, key, keyLen) == 0) {
-                    const char *value = eq + 1;
-                    size_t valueLen = entryLen - keyLen - 1;
-                    if (valueLen > 0 && valueLen < outSize) {
-                        memcpy(out, value, valueLen);
-                        out[valueLen] = '\0';
-                        return true;
-                    }
-                }
-            }
-        }
-
-        if (!entryEnd) {
-            break;
-        }
-        cursor = entryEnd + 1;
-    }
-
-    return false;
-}
-
-static void osdElementGoproStatus(osdElementParms_t *element)
-{
-    char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "STATUS", value, sizeof(value))) {
-         tfp_sprintf(element->buff, "Status: %s", value);
-    } else {
-         strcpy(element->buff, "Status:");
-    }
-}
-
-static void osdElementGoproBattery(osdElementParms_t *element)
-{
-    char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "BAT", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "G_Bat: %s", value);
-    } else {
-        strcpy(element->buff, "G_Bat");
-    }
-}
-
 static void osdElementGoproRecording(osdElementParms_t *element)
 {
     char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "REC", value, sizeof(value))) {
+    const char *json = osdGoproStatusGet();
+    const char *statusStart;
+    const char *statusEnd;
+
+    if (json &&
+        goproJsonExtractObjectRange(json, "status", &statusStart, &statusEnd) &&
+        goproJsonExtractValue(statusStart, statusEnd, "8", value, sizeof(value))) {
         tfp_sprintf(element->buff, "G_Rec: %s", value);
     } else {
         strcpy(element->buff, "G_Rec:");
-    }
-}
-
-static void osdElementGoproSignal(osdElementParms_t *element)
-{
-    char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "REM", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "G_Time: %s", value);
-    } else {
-        strcpy(element->buff, "G_Time:");
-    }
-}
-
-static void osdElementGoproCameraName(osdElementParms_t *element)
-{
-    char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "CAM", value, sizeof(value))){
-        tfp_sprintf(element->buff, "Gopro: %s", value);
-    } else {
-        strcpy(element->buff, "Gopro:");
-    }
-}
-
-static void osdElementGoproTemperature(osdElementParms_t *element)
-{
-    char value[OSD_ELEMENT_BUFFER_LENGTH];
-    if (osdParseGoproValue(osdGoproStatusGet(), "TEMP", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "G_Temp: %s", value);
-    } else {
-        strcpy(element->buff, "G_Temp:");
     }
 }
 #endif
@@ -2100,10 +2021,7 @@ static const uint8_t osdElementDisplayOrder[] = {
 #endif
 #if ENABLE_OSD_CUSTOM_TEXT
     OSD_CUSTOM_SERIAL_TEXT,
-    OSD_GOPRO_STATUS,
-    OSD_GOPRO_BATTERY,
     OSD_GOPRO_RECORDING,
-    OSD_GOPRO_SIGNAL,
 #endif
 };
 
@@ -2255,12 +2173,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
 #endif
 #if ENABLE_OSD_CUSTOM_TEXT
     [OSD_CUSTOM_SERIAL_TEXT]      = osdElementCustomSerialText,
-    [OSD_GOPRO_STATUS]            = osdElementGoproStatus,
-    [OSD_GOPRO_BATTERY]           = osdElementGoproBattery,
     [OSD_GOPRO_RECORDING]         = osdElementGoproRecording,
-    [OSD_GOPRO_SIGNAL]            = osdElementGoproSignal,
-    [OSD_GOPRO_CAMERA_NAME]       = osdElementGoproCameraName,
-    [OSD_GOPRO_TEMPERATURE]       = osdElementGoproTemperature,
 #endif
 };
 

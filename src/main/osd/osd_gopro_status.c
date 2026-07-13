@@ -31,13 +31,24 @@
 #include "rx/rx.h"
 #include "osd/osd.h"
 
-#define GOPRO_INPUT_BUFFER_SIZE 64
-#define GOPRO_DISPLAY_BUFFER_SIZE 32
+#define GOPRO_INPUT_BUFFER_SIZE 2048
+#define GOPRO_DISPLAY_BUFFER_SIZE 2048
 
 static serialPort_t *goproSerialPort = NULL;
 static char goproInputBuffer[GOPRO_INPUT_BUFFER_SIZE];
-static uint8_t goproInputPos = 0;
+static uint16_t goproInputPos = 0;
 static char goproDisplayBuffer[GOPRO_DISPLAY_BUFFER_SIZE];
+
+bool osdGoproStatusSendCommand(const char *command)
+{
+    if (!goproSerialPort || !command || !command[0]) {
+        return false;
+    }
+
+    serialWriteBuf(goproSerialPort, (const uint8_t *)command, strlen(command));
+    serialWrite(goproSerialPort, '\n');
+    return true;
+}
 
 bool osdGoproStatusInit(void)
 {
@@ -86,16 +97,14 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
 
         if (c == '\n') {
             if (goproInputPos > 0) {
-                const uint8_t copyLen = (goproInputPos < (GOPRO_DISPLAY_BUFFER_SIZE - 1)) ? goproInputPos : (GOPRO_DISPLAY_BUFFER_SIZE - 1);
+                const uint16_t copyLen = (goproInputPos < (GOPRO_DISPLAY_BUFFER_SIZE - 1)) ? goproInputPos : (GOPRO_DISPLAY_BUFFER_SIZE - 1);
                 memcpy(goproDisplayBuffer, goproInputBuffer, copyLen);
                 goproDisplayBuffer[copyLen] = '\0';
             } else {
                 goproDisplayBuffer[0] = '\0';
             }
             goproInputPos = 0;
-        } else if (c == '\r') {
-            // Ignore
-        } else if (c != 0x00 && goproInputPos < (GOPRO_INPUT_BUFFER_SIZE - 1)) {
+        } else if (c != '\r' && c != 0x00 && goproInputPos < (GOPRO_INPUT_BUFFER_SIZE - 1)) {
             goproInputBuffer[goproInputPos++] = c;
         }
     }

@@ -200,6 +200,7 @@ typedef enum {
     OSD_CUSTOM_MSG3,
     OSD_LIDAR_DIST,
     OSD_CUSTOM_SERIAL_TEXT,
+    // Legacy placeholders kept to avoid changing persisted OSD item indices.
     OSD_GOPRO_STATUS,
     OSD_GOPRO_BATTERY,
     OSD_GOPRO_RECORDING,

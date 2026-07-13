@@ -33,6 +33,7 @@
 
 #include "cms/cms.h"
 #include "cms/cms_types.h"
+#include "cms/cms_menu_gopro.h"
 #include "cms/cms_menu_osd.h"
 
 #include "common/utils.h"
@@ -180,12 +181,7 @@ const OSD_Entry menuOsdActiveElemsEntries[] =
 #endif
 #if ENABLE_OSD_CUSTOM_TEXT
     {"SERIAL TEXT",        OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_CUSTOM_SERIAL_TEXT]},
-    {"GOPRO STATUS",       OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_STATUS]},
-    {"GOPRO BATTERY",      OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_BATTERY]},
     {"GOPRO RECORDING",    OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_RECORDING]},
-    {"GOPRO REMAINING",    OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_SIGNAL]},
-    {"GOPRO CAMERA",       OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_CAMERA_NAME]},
-    {"GOPRO TEMP",         OME_VISIBLE | DYNAMIC, NULL, &osdConfig_item_pos[OSD_GOPRO_TEMPERATURE]},
 #endif
     {"BACK",               OME_Back,    NULL, NULL},
     {NULL,                 OME_END,     NULL, NULL}
@@ -406,6 +402,9 @@ const OSD_Entry cmsx_menuOsdEntries[] =
     {"ACTIVE ELEM", OME_Submenu, cmsMenuChange, &menuOsdActiveElems},
     {"TIMERS",      OME_Submenu, cmsMenuChange, &menuTimers},
     {"ALARMS",      OME_Submenu, cmsMenuChange, &menuAlarms},
+#if ENABLE_OSD_CUSTOM_TEXT
+    {"GOPRO",       OME_Submenu, cmsMenuChange, &cmsx_menuGopro},
+#endif
 #endif
 #ifdef USE_MAX7456
     {"INVERT",    OME_Bool,  cmsx_max7456Update, &displayPortProfileMax7456_invert},
