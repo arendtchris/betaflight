@@ -27,17 +27,33 @@
 
 #include "drivers/serial.h"
 #include "io/serial.h"
+#include "common/gopro_json.h"
 #include "common/time.h"
 #include "rx/rx.h"
 #include "osd/osd.h"
 
 #define GOPRO_INPUT_BUFFER_SIZE 2048
 #define GOPRO_DISPLAY_BUFFER_SIZE 2048
+#define GOPRO_RECORDING_VALUE_SIZE 16
 
 static serialPort_t *goproSerialPort = NULL;
 static char goproInputBuffer[GOPRO_INPUT_BUFFER_SIZE];
 static uint16_t goproInputPos = 0;
 static char goproDisplayBuffer[GOPRO_DISPLAY_BUFFER_SIZE];
+static char goproRecordingValue[GOPRO_RECORDING_VALUE_SIZE];
+
+static void osdGoproStatusUpdateRecordingCache(void)
+{
+    const char *statusStart;
+    const char *statusEnd;
+
+    if (goproJsonExtractObjectRange(goproDisplayBuffer, "status", &statusStart, &statusEnd) &&
+        goproJsonExtractValue(statusStart, statusEnd, "8", goproRecordingValue, sizeof(goproRecordingValue))) {
+        return;
+    }
+
+    goproRecordingValue[0] = '\0';
+}
 
 bool osdGoproStatusSendCommand(const char *command)
 {
@@ -79,6 +95,7 @@ bool osdGoproStatusInit(void)
 
     memset(goproInputBuffer, 0, sizeof(goproInputBuffer));
     memset(goproDisplayBuffer, 0, sizeof(goproDisplayBuffer));
+    memset(goproRecordingValue, 0, sizeof(goproRecordingValue));
     goproInputPos = 0;
 
     return true;
@@ -103,6 +120,8 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
             } else {
                 goproDisplayBuffer[0] = '\0';
             }
+
+            osdGoproStatusUpdateRecordingCache();
             goproInputPos = 0;
         } else if (c != '\r' && c != 0x00 && goproInputPos < (GOPRO_INPUT_BUFFER_SIZE - 1)) {
             goproInputBuffer[goproInputPos++] = c;
@@ -120,16 +139,11 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
             const bool curHigh = rcData[auxIndex] > mid;
 
             if (curHigh && !prevAuxHigh) {
-                const char *startCmd = "REC=REC_ON\n";
-                serialWriteBuf(goproSerialPort, (const uint8_t *)startCmd, strlen(startCmd));
+                osdGoproStatusSendCommand("REC=REC_ON");
             } else if (!curHigh && prevAuxHigh) {
-                const char *stopCmd = "REC=REC_OFF\n";
-                serialWriteBuf(goproSerialPort, (const uint8_t *)stopCmd, strlen(stopCmd));
-            }else
-            {
-                  const char *stopCmd = "REC=REC_IDLE\n";
-                serialWriteBuf(goproSerialPort, (const uint8_t *)stopCmd, strlen(stopCmd));
-
+                osdGoproStatusSendCommand("REC=REC_OFF");
+            } else {
+                osdGoproStatusSendCommand("REC=REC_IDLE");
             }
             prevAuxHigh = curHigh;
         }
@@ -139,6 +153,11 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
 const char *osdGoproStatusGet(void)
 {
     return goproDisplayBuffer;
+}
+
+const char *osdGoproStatusGetRecording(void)
+{
+    return goproRecordingValue;
 }
 
 #endif

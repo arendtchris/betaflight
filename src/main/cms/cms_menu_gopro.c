@@ -22,167 +22,14 @@
 
 #if defined(USE_OSD) && defined(USE_CMS)
 
-#include <stdbool.h>
 #include <string.h>
 
 #include "common/printf.h"
-#include "common/gopro_json.h"
 
 #include "cms/cms.h"
 #include "cms/cms_types.h"
 #include "cms/cms_menu_gopro.h"
 #include "osd/osd_gopro_status.h"
-
-#define GOPRO_SETTING_FPS 3
-#define GOPRO_SETTING_HYPERSMOOTH 135
-
-static uint16_t goproPendingSettingId = 0;
-static uint16_t goproCurrentFpsOption = 0xFFFF;
-static uint16_t goproCurrentHypersmoothOption = 0xFFFF;
-
-static char goproCurrentFpsText[14] = " ?";
-static char goproCurrentHypersmoothText[14] = " ?";
-
-static const char *cmsx_menuGoproGetFpsLabelByOption(uint16_t option)
-{
-    switch (option) {
-    case 0:  return "240.0";
-    case 1:  return "120.0";
-    case 2:  return "100.0";
-    case 3:  return "90.0";
-    case 5:  return "60.0";
-    case 6:  return "50.0";
-    case 8:  return "30.0";
-    case 9:  return "25.0";
-    case 10: return "24.0";
-    case 13: return "200.0";
-    case 15: return "400.0";
-    case 16: return "360.0";
-    case 17: return "300.0";
-    case 18: return "480.0";
-    case 19: return "960.0";
-    case 20: return "800.0";
-    default: return NULL;
-    }
-}
-
-static const char *cmsx_menuGoproGetHypersmoothLabelByOption(uint16_t option)
-{
-    switch (option) {
-    case 0: return "OFF";
-    case 1: return "LOW";
-    case 4: return "AUTO";
-    default: return NULL;
-    }
-}
-
-static bool cmsx_menuGoproParseCurrentOptions(const char *json, uint16_t *fpsOption, uint16_t *hypersmoothOption)
-{
-    bool found = false;
-    uint16_t value;
-    if (fpsOption && goproJsonGetSettingOption(json, GOPRO_SETTING_FPS, &value)) {
-        *fpsOption = value;
-        found = true;
-    }
-    if (hypersmoothOption && goproJsonGetSettingOption(json, GOPRO_SETTING_HYPERSMOOTH, &value)) {
-        *hypersmoothOption = value;
-        found = true;
-    }
-
-    return found;
-}
-
-static void cmsx_menuGoproUpdateCurrentValueStrings(void)
-{
-    const char *fpsLabel = cmsx_menuGoproGetFpsLabelByOption(goproCurrentFpsOption);
-    const char *hypersmoothLabel = cmsx_menuGoproGetHypersmoothLabelByOption(goproCurrentHypersmoothOption);
-
-    if (fpsLabel) {
-        tfp_sprintf(goproCurrentFpsText, "%s", fpsLabel);
-    } else if (goproCurrentFpsOption != 0xFFFFU) {
-        tfp_sprintf(goproCurrentFpsText, "OPT%u", goproCurrentFpsOption);
-    } else {
-        tfp_sprintf(goproCurrentFpsText, "?");
-    }
-
-    if (hypersmoothLabel) {
-        tfp_sprintf(goproCurrentHypersmoothText, "%s", hypersmoothLabel);
-    } else if (goproCurrentHypersmoothOption != 0xFFFFU) {
-        tfp_sprintf(goproCurrentHypersmoothText, "OPT%u", goproCurrentHypersmoothOption);
-    } else {
-        tfp_sprintf(goproCurrentHypersmoothText, "?");
-    }
-}
-
-static const void *cmsx_menuGoproOnDisplayUpdate(displayPort_t *pDisp, const OSD_Entry *selected)
-{
-    UNUSED(pDisp);
-    UNUSED(selected);
-
-    const char *response = osdGoproStatusGet();
-    uint16_t option;
-
-    if (response && response[0]) {
-        if (cmsx_menuGoproParseCurrentOptions(response, &goproCurrentFpsOption, &goproCurrentHypersmoothOption)) {
-            goproPendingSettingId = 0;
-        } else if (goproJsonExtractUint16(response, response + strlen(response), "option", &option)) {
-            if (goproPendingSettingId == GOPRO_SETTING_FPS) {
-                goproCurrentFpsOption = option;
-            } else if (goproPendingSettingId == GOPRO_SETTING_HYPERSMOOTH) {
-                goproCurrentHypersmoothOption = option;
-            }
-        }
-    }
-
-    cmsx_menuGoproUpdateCurrentValueStrings();
-    return NULL;
-}
-
-static const void *cmsx_menuGoproReadCurrentSetting(displayPort_t *pDisp, const void *ptr)
-{
-    UNUSED(pDisp);
-
-    const char *settingParam = (const char *)ptr;
-    if (!settingParam || strncmp(settingParam, "setting=", 8) != 0) {
-        return NULL;
-    }
-
-    uint16_t settingId;
-    if (!goproJsonParseUint16(settingParam + 8, &settingId)) {
-        return NULL;
-    }
-
-    goproPendingSettingId = settingId;
-
-    {
-        static const char commandPrefix[] = "GET /gopro/camera/setting?";
-        char command[64];
-        size_t prefixLength = strlen(commandPrefix);
-        size_t paramLength = strlen(settingParam);
-
-        if (prefixLength + paramLength >= sizeof(command)) {
-            return NULL;
-        }
-
-        memcpy(command, commandPrefix, prefixLength);
-        memcpy(command + prefixLength, settingParam, paramLength);
-        command[prefixLength + paramLength] = '\0';
-
-        osdGoproStatusSendCommand(command);
-    }
-
-    return NULL;
-}
-
-static const void *cmsx_menuGoproReadCurrentState(displayPort_t *pDisp, const void *ptr)
-{
-    UNUSED(pDisp);
-    UNUSED(ptr);
-
-    goproPendingSettingId = 0;
-    osdGoproStatusSendCommand("GET /gopro/camera/state");
-    return NULL;
-}
 
 static const void *cmsx_menuGoproSendCommand(displayPort_t *pDisp, const void *ptr)
 {
@@ -216,8 +63,6 @@ static const void *cmsx_menuGoproSendCommand(displayPort_t *pDisp, const void *p
 static const OSD_Entry cmsx_menuGoproEntries[] =
 {
     {"--- GOPRO FPS ---", OME_Label, NULL, NULL},
-    {"CUR", OME_Label | DYNAMIC, NULL, goproCurrentFpsText},
-    {"READ CUR", OME_Funcall, cmsx_menuGoproReadCurrentSetting, (void *)"setting=3"},
     {"240.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=0&setting=3"},
     {"120.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=1&setting=3"},
     {"100.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=2&setting=3"},
@@ -235,12 +80,9 @@ static const OSD_Entry cmsx_menuGoproEntries[] =
     {"960.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=19&setting=3"},
     {"800.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=20&setting=3"},
     {"-- HYPERSMOOTH --", OME_Label, NULL, NULL},
-    {"CUR", OME_Label | DYNAMIC, NULL, goproCurrentHypersmoothText},
-    {"READ CUR", OME_Funcall, cmsx_menuGoproReadCurrentSetting, (void *)"setting=135"},
     {"OFF", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=0&setting=135"},
     {"LOW", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=1&setting=135"},
     {"AUTO BOOST", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=4&setting=135"},
-    {"READ STATE", OME_Funcall, cmsx_menuGoproReadCurrentState, NULL},
     {"BACK", OME_Back, NULL, NULL},
     {NULL, OME_END, NULL, NULL}
 };
@@ -252,7 +94,7 @@ CMS_Menu cmsx_menuGopro = {
 #endif
     .onEnter = NULL,
     .onExit = NULL,
-    .onDisplayUpdate = cmsx_menuGoproOnDisplayUpdate,
+    .onDisplayUpdate = NULL,
     .entries = cmsx_menuGoproEntries
 };
 

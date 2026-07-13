@@ -131,7 +131,6 @@
 
 #include "common/axis.h"
 #include "common/maths.h"
-#include "common/gopro_json.h"
 #include "common/printf.h"
 #include "common/typeconversion.h"
 #include "common/utils.h"
@@ -736,15 +735,10 @@ static void osdElementCustomSerialText(osdElementParms_t *element)
 
 static void osdElementGoproRecording(osdElementParms_t *element)
 {
-    char value[OSD_ELEMENT_BUFFER_LENGTH];
-    const char *json = osdGoproStatusGet();
-    const char *statusStart;
-    const char *statusEnd;
+    const char *recordingValue = osdGoproStatusGetRecording();
 
-    if (json &&
-        goproJsonExtractObjectRange(json, "status", &statusStart, &statusEnd) &&
-        goproJsonExtractValue(statusStart, statusEnd, "8", value, sizeof(value))) {
-        tfp_sprintf(element->buff, "G_Rec: %s", value);
+    if (recordingValue && recordingValue[0] != '\0') {
+        tfp_sprintf(element->buff, "G_Rec: %s", recordingValue);
     } else {
         strcpy(element->buff, "G_Rec:");
     }
