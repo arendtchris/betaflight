@@ -22,6 +22,7 @@
 
 #if defined(USE_OSD) && defined(USE_CMS)
 
+#include <stdbool.h>
 #include <string.h>
 
 #include "common/printf.h"
