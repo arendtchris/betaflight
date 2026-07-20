@@ -23,14 +23,79 @@
 #if defined(USE_OSD) && defined(USE_CMS)
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "common/printf.h"
-
+#include "common/gopro_json.h"
 #include "cms/cms.h"
 #include "cms/cms_types.h"
 #include "cms/cms_menu_gopro.h"
 #include "osd/osd_gopro_status.h"
+
+#define GOPRO_STATUS_BATTERY_TEXT_SIZE 8
+#define GOPRO_STATUS_RECORDING_TEXT_SIZE 16
+#define GOPRO_STATUS_LINK_TEXT_SIZE 16
+#define GOPRO_SETTING_RECORD 8
+#define GOPRO_SETTING_RESOLUTION 2
+#define GOPRO_SETTING_FPS 3
+#define GOPRO_SETTING_LENS 121
+#define GOPRO_SETTING_HYPERSMOOTH 135
+
+static const char * const goproRecordNames[] = {
+    "STOP", "START"
+};
+
+static const uint16_t goproRecordOptions[] = {
+    0, 1
+};
+
+static const char * const goproResolutionNames[] = {
+    "5.3K", "5.3K 8:7", "4K", "4K 8:7", "2.7K", "1080"
+};
+
+static const uint16_t goproResolutionOptions[] = {
+    100, 26, 1, 28, 4, 9
+};
+
+static const char * const goproFpsNames[] = {
+    "240", "120", "100", "90 ", "60 ", "50 ", "30 ", "25 ", "24 ",
+    "200", "400", "360", "300", "480", "960", "800"
+};
+
+static const uint16_t goproFpsOptions[] = {
+    0, 1, 2, 3, 5, 6, 8, 9, 10, 13, 15, 16, 17, 18, 19, 20
+};
+
+static const char * const goproLensNames[] = {
+    "WIDE", "SUPERVIEW", "LINEAR", "LIN HL", "HYPERVIEW"
+};
+
+static const uint16_t goproLensOptions[] = {
+    0, 3, 4, 8, 9
+};
+
+static const char * const goproHypersmoothNames[] = {
+    "OFF", "LOW", "AUTO"
+};
+
+static const uint16_t goproHypersmoothOptions[] = {
+    0, 1, 4
+};
+
+static char goproStatusBatteryText[GOPRO_STATUS_BATTERY_TEXT_SIZE];
+static char goproStatusRecordingText[GOPRO_STATUS_RECORDING_TEXT_SIZE];
+static char goproStatusLinkText[GOPRO_STATUS_LINK_TEXT_SIZE];
+static uint8_t goproRecordIndex = 0;
+static uint8_t goproResolutionIndex = 2;
+static uint8_t goproFpsIndex = 4;
+static uint8_t goproLensIndex = 1;
+static uint8_t goproHypersmoothIndex = 0;
+static OSD_TAB_t goproCmsEntRecord = { &goproRecordIndex, ARRAYLEN(goproRecordNames) - 1, goproRecordNames };
+static OSD_TAB_t goproCmsEntResolution = { &goproResolutionIndex, ARRAYLEN(goproResolutionNames) - 1, goproResolutionNames };
+static OSD_TAB_t goproCmsEntFps = { &goproFpsIndex, ARRAYLEN(goproFpsNames) - 1, goproFpsNames };
+static OSD_TAB_t goproCmsEntLens = { &goproLensIndex, ARRAYLEN(goproLensNames) - 1, goproLensNames };
+static OSD_TAB_t goproCmsEntHypersmooth = { &goproHypersmoothIndex, ARRAYLEN(goproHypersmoothNames) - 1, goproHypersmoothNames };
 
 static const void *cmsx_menuGoproSendCommand(displayPort_t *pDisp, const void *ptr)
 {
@@ -38,36 +103,201 @@ static const void *cmsx_menuGoproSendCommand(displayPort_t *pDisp, const void *p
 
     const char *commandParam = (const char *)ptr;
     if (commandParam && commandParam[0]) {
-        
         osdGoproStatusSendCommand(commandParam);
     }
 
     return NULL;
 }
 
+static int8_t cmsx_menuGoproFindOptionIndex(const uint16_t *options, uint8_t optionCount, uint16_t optionValue)
+{
+    for (uint8_t index = 0; index < optionCount; index++) {
+        if (options[index] == optionValue) {
+            return index;
+        }
+    }
+
+    return -1;
+}
+
+static void cmsx_menuGoproSyncTabFromStatus(uint16_t settingId, const uint16_t *options, uint8_t optionCount, uint8_t *selectedIndex)
+{
+    uint16_t optionValue;
+    const char *statusText = osdGoproStatusGet();
+
+    if (!selectedIndex || !statusText || !statusText[0]) {
+        return;
+    }
+
+    if (!goproJsonGetSettingOption(statusText, settingId, &optionValue)) {
+        return;
+    }
+
+    const int8_t matchedIndex = cmsx_menuGoproFindOptionIndex(options, optionCount, optionValue);
+    if (matchedIndex >= 0) {
+        *selectedIndex = (uint8_t)matchedIndex;
+    }
+}
+
+static void cmsx_menuGoproSyncRecordTabFromStatus(void)
+{
+    uint16_t recordingValue;
+    const char *statusText = osdGoproStatusGet();
+    const char *statusStart;
+    const char *statusEnd;
+
+    if (!statusText || !statusText[0]) {
+        return;
+    }
+
+    if (!goproJsonExtractObjectRange(statusText, "status", &statusStart, &statusEnd)) {
+        return;
+    }
+
+    if (!goproJsonExtractUint16(statusStart, statusEnd, "8", &recordingValue)) {
+        return;
+    }
+
+    const int8_t matchedIndex = cmsx_menuGoproFindOptionIndex(goproRecordOptions, ARRAYLEN(goproRecordOptions), recordingValue);
+    if (matchedIndex >= 0) {
+        goproRecordIndex = (uint8_t)matchedIndex;
+    }
+}
+
+static const void *cmsx_menuGoproSendIndexedSetting(displayPort_t *pDisp, uint8_t *selectedIndex, const uint16_t *options, uint8_t optionCount, uint16_t settingId)
+{
+    if (!selectedIndex || !options || !optionCount) {
+        return NULL;
+    }
+
+    if (*selectedIndex >= optionCount) {
+        *selectedIndex = 0;
+    }
+
+    char command[32];
+    tfp_sprintf(command, "option=%u&setting=%u", options[*selectedIndex], settingId);
+    return cmsx_menuGoproSendCommand(pDisp, command);
+}
+
+static const void *cmsx_menuGoproSetRecord(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(self);
+
+    return cmsx_menuGoproSendIndexedSetting(pDisp, &goproRecordIndex, goproRecordOptions, ARRAYLEN(goproRecordOptions), GOPRO_SETTING_RECORD);
+}
+
+static const void *cmsx_menuGoproSetResolution(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(self);
+
+    return cmsx_menuGoproSendIndexedSetting(pDisp, &goproResolutionIndex, goproResolutionOptions, ARRAYLEN(goproResolutionOptions), GOPRO_SETTING_RESOLUTION);
+}
+
+static const void *cmsx_menuGoproSetFps(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(self);
+
+    return cmsx_menuGoproSendIndexedSetting(pDisp, &goproFpsIndex, goproFpsOptions, ARRAYLEN(goproFpsOptions), GOPRO_SETTING_FPS);
+}
+
+static const void *cmsx_menuGoproSetLens(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(self);
+
+    return cmsx_menuGoproSendIndexedSetting(pDisp, &goproLensIndex, goproLensOptions, ARRAYLEN(goproLensOptions), GOPRO_SETTING_LENS);
+}
+
+static const void *cmsx_menuGoproSetHypersmooth(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(self);
+
+    return cmsx_menuGoproSendIndexedSetting(pDisp, &goproHypersmoothIndex, goproHypersmoothOptions, ARRAYLEN(goproHypersmoothOptions), GOPRO_SETTING_HYPERSMOOTH);
+}
+
+static const void *cmsx_menuGoproOnEnter(displayPort_t *pDisp)
+{
+    UNUSED(pDisp);
+
+    cmsx_menuGoproSyncRecordTabFromStatus();
+    cmsx_menuGoproSyncTabFromStatus(GOPRO_SETTING_RESOLUTION, goproResolutionOptions, ARRAYLEN(goproResolutionOptions), &goproResolutionIndex);
+    cmsx_menuGoproSyncTabFromStatus(GOPRO_SETTING_FPS, goproFpsOptions, ARRAYLEN(goproFpsOptions), &goproFpsIndex);
+    cmsx_menuGoproSyncTabFromStatus(GOPRO_SETTING_LENS, goproLensOptions, ARRAYLEN(goproLensOptions), &goproLensIndex);
+    cmsx_menuGoproSyncTabFromStatus(GOPRO_SETTING_HYPERSMOOTH, goproHypersmoothOptions, ARRAYLEN(goproHypersmoothOptions), &goproHypersmoothIndex);
+
+    return NULL;
+}
+
+static void cmsx_menuGoproCopyStatusText(char *dst, size_t dstSize, const char *src, const char *fallback)
+{
+    if (!dst || !dstSize) {
+        return;
+    }
+
+    const char *value = (src && src[0]) ? src : fallback;
+    if (!value) {
+        value = "";
+    }
+
+    strncpy(dst, value, dstSize - 1);
+    dst[dstSize - 1] = '\0';
+}
+
+static void cmsx_menuGoproRefreshStatus(void)
+{
+    cmsx_menuGoproCopyStatusText(goproStatusBatteryText, sizeof(goproStatusBatteryText), osdGoproStatusGetBattery(), "--");
+    cmsx_menuGoproCopyStatusText(goproStatusRecordingText, sizeof(goproStatusRecordingText), osdGoproStatusGetRecording(), "--");
+    cmsx_menuGoproCopyStatusText(goproStatusLinkText, sizeof(goproStatusLinkText), osdGoproStatusGet()[0] ? "ONLINE" : NULL, "WAITING");
+}
+
+static const void *cmsx_menuGoproStatusOnEnter(displayPort_t *pDisp)
+{
+    UNUSED(pDisp);
+
+    cmsx_menuGoproRefreshStatus();
+
+    return NULL;
+}
+
+static const void *cmsx_menuGoproStatusOnDisplayUpdate(displayPort_t *pDisp, const OSD_Entry *selected)
+{
+    UNUSED(pDisp);
+    UNUSED(selected);
+
+    cmsx_menuGoproRefreshStatus();
+
+    return NULL;
+}
+
+static const OSD_Entry cmsx_menuGoproStatusEntries[] =
+{
+    {"- STATUS -", OME_Label, NULL, NULL},
+    {"BATT", OME_Label | DYNAMIC, NULL, goproStatusBatteryText},
+    {"REC", OME_Label | DYNAMIC, NULL, goproStatusRecordingText},
+    {"LINK", OME_Label | DYNAMIC, NULL, goproStatusLinkText},
+    {"BACK", OME_Back, NULL, NULL},
+    {NULL, OME_END, NULL, NULL}
+};
+
+static CMS_Menu cmsx_menuGoproStatus = {
+#ifdef CMS_MENU_DEBUG
+    .GUARD_text = "MGOPROSTS",
+    .GUARD_type = OME_MENU,
+#endif
+    .onEnter = cmsx_menuGoproStatusOnEnter,
+    .onExit = NULL,
+    .onDisplayUpdate = cmsx_menuGoproStatusOnDisplayUpdate,
+    .entries = cmsx_menuGoproStatusEntries
+};
+
 static const OSD_Entry cmsx_menuGoproEntries[] =
 {
-    {"--- GOPRO FPS ---", OME_Label, NULL, NULL},
-    {"240.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=0&setting=3"},
-    {"120.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=1&setting=3"},
-    {"100.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=2&setting=3"},
-    {"90.0",  OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=3&setting=3"},
-    {"60.0",  OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=5&setting=3"},
-    {"50.0",  OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=6&setting=3"},
-    {"30.0",  OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=8&setting=3"},
-    {"25.0",  OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=9&setting=3"},
-    {"24.0",  OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=10&setting=3"},
-    {"200.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=13&setting=3"},
-    {"400.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=15&setting=3"},
-    {"360.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=16&setting=3"},
-    {"300.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=17&setting=3"},
-    {"480.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=18&setting=3"},
-    {"960.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=19&setting=3"},
-    {"800.0", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=20&setting=3"},
-    {"-- HYPERSMOOTH --", OME_Label, NULL, NULL},
-    {"OFF", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=0&setting=135"},
-    {"LOW", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=1&setting=135"},
-    {"AUTO BOOST", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=4&setting=135"},
+    {"--- GOPRO ---", OME_Label, NULL, NULL},
+    {"RECORD", OME_TAB, cmsx_menuGoproSetRecord, &goproCmsEntRecord},
+    {"RESOLUTION", OME_TAB, cmsx_menuGoproSetResolution, &goproCmsEntResolution},
+    {"FPS", OME_TAB, cmsx_menuGoproSetFps, &goproCmsEntFps},
+    {"LENS", OME_TAB, cmsx_menuGoproSetLens, &goproCmsEntLens},
+    {"HYPERSMOOTH", OME_TAB, cmsx_menuGoproSetHypersmooth, &goproCmsEntHypersmooth},
+    {"STATUS", OME_Submenu, cmsMenuChange, &cmsx_menuGoproStatus},
     {"BACK", OME_Back, NULL, NULL},
     {NULL, OME_END, NULL, NULL}
 };
@@ -77,7 +307,7 @@ CMS_Menu cmsx_menuGopro = {
     .GUARD_text = "MENUGOPRO",
     .GUARD_type = OME_MENU,
 #endif
-    .onEnter = NULL,
+    .onEnter = cmsx_menuGoproOnEnter,
     .onExit = NULL,
     .onDisplayUpdate = NULL,
     .entries = cmsx_menuGoproEntries
