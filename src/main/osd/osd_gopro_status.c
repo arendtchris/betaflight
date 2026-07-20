@@ -34,25 +34,30 @@
 
 #define GOPRO_INPUT_BUFFER_SIZE 2048
 #define GOPRO_DISPLAY_BUFFER_SIZE 2048
+#define GOPRO_BATTERY_VALUE_SIZE 8
 #define GOPRO_RECORDING_VALUE_SIZE 16
 
 static serialPort_t *goproSerialPort = NULL;
 static char goproInputBuffer[GOPRO_INPUT_BUFFER_SIZE];
 static uint16_t goproInputPos = 0;
 static char goproDisplayBuffer[GOPRO_DISPLAY_BUFFER_SIZE];
+static char goproBatteryValue[GOPRO_BATTERY_VALUE_SIZE];
 static char goproRecordingValue[GOPRO_RECORDING_VALUE_SIZE];
 
-static void osdGoproStatusUpdateRecordingCache(void)
+static void osdGoproStatusUpdateCaches(void)
 {
     const char *statusStart;
     const char *statusEnd;
 
-    if (goproJsonExtractObjectRange(goproDisplayBuffer, "status", &statusStart, &statusEnd) &&
-        goproJsonExtractValue(statusStart, statusEnd, "8", goproRecordingValue, sizeof(goproRecordingValue))) {
+    goproBatteryValue[0] = '\0';
+    goproRecordingValue[0] = '\0';
+
+    if (!goproJsonExtractObjectRange(goproDisplayBuffer, "status", &statusStart, &statusEnd)) {
         return;
     }
 
-    goproRecordingValue[0] = '\0';
+    goproJsonExtractValue(statusStart, statusEnd, "70", goproBatteryValue, sizeof(goproBatteryValue));
+    goproJsonExtractValue(statusStart, statusEnd, "8", goproRecordingValue, sizeof(goproRecordingValue));
 }
 
 bool osdGoproStatusSendCommand(const char *command)
@@ -95,6 +100,7 @@ bool osdGoproStatusInit(void)
 
     memset(goproInputBuffer, 0, sizeof(goproInputBuffer));
     memset(goproDisplayBuffer, 0, sizeof(goproDisplayBuffer));
+    memset(goproBatteryValue, 0, sizeof(goproBatteryValue));
     memset(goproRecordingValue, 0, sizeof(goproRecordingValue));
     goproInputPos = 0;
 
@@ -121,7 +127,7 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
                 goproDisplayBuffer[0] = '\0';
             }
 
-            osdGoproStatusUpdateRecordingCache();
+            osdGoproStatusUpdateCaches();
             goproInputPos = 0;
         } else if (c != '\r' && c != 0x00 && goproInputPos < (GOPRO_INPUT_BUFFER_SIZE - 1)) {
             goproInputBuffer[goproInputPos++] = c;
@@ -139,12 +145,10 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
             const bool curHigh = rcData[auxIndex] > mid;
 
             if (curHigh && !prevAuxHigh) {
-                osdGoproStatusSendCommand("REC=REC_ON");
+                osdGoproStatusSendCommand("option=1&setting=8");
             } else if (!curHigh && prevAuxHigh) {
-                osdGoproStatusSendCommand("REC=REC_OFF");
-            } else {
-                osdGoproStatusSendCommand("REC=REC_IDLE");
-            }
+                osdGoproStatusSendCommand("option=0&setting=8");
+            } 
             prevAuxHigh = curHigh;
         }
     }
@@ -153,6 +157,11 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
 const char *osdGoproStatusGet(void)
 {
     return goproDisplayBuffer;
+}
+
+const char *osdGoproStatusGetBattery(void)
+{
+    return goproBatteryValue;
 }
 
 const char *osdGoproStatusGetRecording(void)

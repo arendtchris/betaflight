@@ -38,24 +38,8 @@ static const void *cmsx_menuGoproSendCommand(displayPort_t *pDisp, const void *p
 
     const char *commandParam = (const char *)ptr;
     if (commandParam && commandParam[0]) {
-        static const char commandPrefix[] = "GET /gopro/camera/setting?";
-        char command[64];
-        size_t length = 0;
-        const size_t maxLength = sizeof(command) - 1;
-
-        const size_t prefixLength = strlen(commandPrefix);
-        const size_t paramLength = strlen(commandParam);
-        if (prefixLength + paramLength > maxLength) {
-            return NULL;
-        }
-
-        memcpy(command + length, commandPrefix, prefixLength);
-        length += prefixLength;
-        memcpy(command + length, commandParam, paramLength);
-        length += paramLength;
-        command[length] = '\0';
-
-        osdGoproStatusSendCommand(command);
+        
+        osdGoproStatusSendCommand(commandParam);
     }
 
     return NULL;

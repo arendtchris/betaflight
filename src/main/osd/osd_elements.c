@@ -733,14 +733,37 @@ static void osdElementCustomSerialText(osdElementParms_t *element)
     }
 }
 
+static void osdElementGoproBattery(osdElementParms_t *element)
+{
+    const char *batteryValue = osdGoproStatusGetBattery();
+
+    if (batteryValue && batteryValue[0] != '\0') {
+        bool numeric = true;
+        for (const char *p = batteryValue; *p; p++) {
+            if (!isdigit((unsigned char)*p)) {
+                numeric = false;
+                break;
+            }
+        }
+
+        if (numeric) {
+            tfp_sprintf(element->buff, "GBAT:%s%%", batteryValue);
+        } else {
+            tfp_sprintf(element->buff, "GBAT:%s", batteryValue);
+        }
+    } else {
+        strcpy(element->buff, "GBAT:---");
+    }
+}
+
 static void osdElementGoproRecording(osdElementParms_t *element)
 {
     const char *recordingValue = osdGoproStatusGetRecording();
 
     if (recordingValue && recordingValue[0] != '\0') {
-        tfp_sprintf(element->buff, "G_Rec: %s", recordingValue);
+        tfp_sprintf(element->buff, "G-REC: %s", recordingValue);
     } else {
-        strcpy(element->buff, "G_Rec:");
+        strcpy(element->buff, "G-REC: ---");
     }
 }
 #endif
@@ -2015,6 +2038,7 @@ static const uint8_t osdElementDisplayOrder[] = {
 #endif
 #if ENABLE_OSD_CUSTOM_TEXT
     OSD_CUSTOM_SERIAL_TEXT,
+    OSD_GOPRO_BATTERY,
     OSD_GOPRO_RECORDING,
 #endif
 };
@@ -2167,6 +2191,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
 #endif
 #if ENABLE_OSD_CUSTOM_TEXT
     [OSD_CUSTOM_SERIAL_TEXT]      = osdElementCustomSerialText,
+    [OSD_GOPRO_BATTERY]          = osdElementGoproBattery,
     [OSD_GOPRO_RECORDING]         = osdElementGoproRecording,
 #endif
 };

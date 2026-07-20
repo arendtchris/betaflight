@@ -27,5 +27,6 @@
 bool osdGoproStatusInit(void);
 void osdGoproStatusUpdate(timeUs_t currentTimeUs);
 const char *osdGoproStatusGet(void);
+const char *osdGoproStatusGetBattery(void);
 const char *osdGoproStatusGetRecording(void);
 bool osdGoproStatusSendCommand(const char *command);
