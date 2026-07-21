@@ -51,36 +51,35 @@ static const uint16_t goproRecordOptions[] = {
 };
 
 static const char * const goproResolutionNames[] = {
-    "5.3K", "5.3K 8:7", "4K", "4K 8:7", "2.7K", "1080"
+    "5.3K", "5.3K 8:7", "5.3K 4:3", "4K", "4K 8:7", "4K 4:3", "2.7K", "2.7K 4:3", "1080"
 };
 
 static const uint16_t goproResolutionOptions[] = {
-    100, 26, 1, 28, 4, 9
+    100, 26, 27, 1, 28, 18, 4, 6, 9
 };
 
 static const char * const goproFpsNames[] = {
-    "240", "120", "100", "90 ", "60 ", "50 ", "30 ", "25 ", "24 ",
-    "200", "400", "360", "300", "480", "960", "800"
+    "240", "200", "120", "100", "60 ", "50 ", "30 ", "25 ", "24 "
 };
 
 static const uint16_t goproFpsOptions[] = {
-    0, 1, 2, 3, 5, 6, 8, 9, 10, 13, 15, 16, 17, 18, 19, 20
+    0, 13, 1, 2, 5, 6, 8, 9, 10
 };
 
 static const char * const goproLensNames[] = {
-    "WIDE", "SUPERVIEW", "LINEAR", "LIN HL", "HYPERVIEW"
+    "WIDE", "SUPERVIEW", "LINEAR", "MAX SV", "LIN HL", "HYPERVIEW", "LIN LOCK"
 };
 
 static const uint16_t goproLensOptions[] = {
-    0, 3, 4, 8, 9
+    0, 3, 4, 7, 8, 9, 10
 };
 
 static const char * const goproHypersmoothNames[] = {
-    "OFF", "LOW", "AUTO"
+    "OFF", "LOW", "BOOST", "AUTO"
 };
 
 static const uint16_t goproHypersmoothOptions[] = {
-    0, 1, 4
+    0, 1, 3, 4
 };
 
 static char goproStatusBatteryText[GOPRO_STATUS_BATTERY_TEXT_SIZE];
