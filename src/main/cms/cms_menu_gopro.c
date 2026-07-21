@@ -97,6 +97,7 @@ static OSD_TAB_t goproCmsEntFps = { &goproFpsIndex, ARRAYLEN(goproFpsNames) - 1,
 static OSD_TAB_t goproCmsEntLens = { &goproLensIndex, ARRAYLEN(goproLensNames) - 1, goproLensNames };
 static OSD_TAB_t goproCmsEntHypersmooth = { &goproHypersmoothIndex, ARRAYLEN(goproHypersmoothNames) - 1, goproHypersmoothNames };
 
+// Sends a raw GoPro command string over the existing status/control UART link.
 static const void *cmsx_menuGoproSendCommand(displayPort_t *pDisp, const void *ptr)
 {
     UNUSED(pDisp);
@@ -109,6 +110,7 @@ static const void *cmsx_menuGoproSendCommand(displayPort_t *pDisp, const void *p
     return NULL;
 }
 
+// Finds the index of a specific option value inside an option table.
 static int8_t cmsx_menuGoproFindOptionIndex(const uint16_t *options, uint8_t optionCount, uint16_t optionValue)
 {
     for (uint8_t index = 0; index < optionCount; index++) {
@@ -120,6 +122,7 @@ static int8_t cmsx_menuGoproFindOptionIndex(const uint16_t *options, uint8_t opt
     return -1;
 }
 
+// Syncs a CMS tab index with the current value of a GoPro setting from state JSON.
 static void cmsx_menuGoproSyncTabFromStatus(uint16_t settingId, const uint16_t *options, uint8_t optionCount, uint8_t *selectedIndex)
 {
     uint16_t optionValue;
@@ -139,6 +142,7 @@ static void cmsx_menuGoproSyncTabFromStatus(uint16_t settingId, const uint16_t *
     }
 }
 
+// Syncs the record tab from status key 8, which reflects current recording state.
 static void cmsx_menuGoproSyncRecordTabFromStatus(void)
 {
     uint16_t recordingValue;
@@ -164,6 +168,7 @@ static void cmsx_menuGoproSyncRecordTabFromStatus(void)
     }
 }
 
+// Builds and sends a setting command using the currently selected tab option.
 static const void *cmsx_menuGoproSendIndexedSetting(displayPort_t *pDisp, uint8_t *selectedIndex, const uint16_t *options, uint8_t optionCount, uint16_t settingId)
 {
     if (!selectedIndex || !options || !optionCount) {
@@ -179,6 +184,7 @@ static const void *cmsx_menuGoproSendIndexedSetting(displayPort_t *pDisp, uint8_
     return cmsx_menuGoproSendCommand(pDisp, command);
 }
 
+// Applies the selected record state (start/stop).
 static const void *cmsx_menuGoproSetRecord(displayPort_t *pDisp, const void *self)
 {
     UNUSED(self);
@@ -186,6 +192,7 @@ static const void *cmsx_menuGoproSetRecord(displayPort_t *pDisp, const void *sel
     return cmsx_menuGoproSendIndexedSetting(pDisp, &goproRecordIndex, goproRecordOptions, ARRAYLEN(goproRecordOptions), GOPRO_SETTING_RECORD);
 }
 
+// Applies the selected video resolution.
 static const void *cmsx_menuGoproSetResolution(displayPort_t *pDisp, const void *self)
 {
     UNUSED(self);
@@ -193,6 +200,7 @@ static const void *cmsx_menuGoproSetResolution(displayPort_t *pDisp, const void 
     return cmsx_menuGoproSendIndexedSetting(pDisp, &goproResolutionIndex, goproResolutionOptions, ARRAYLEN(goproResolutionOptions), GOPRO_SETTING_RESOLUTION);
 }
 
+// Applies the selected frame-rate option.
 static const void *cmsx_menuGoproSetFps(displayPort_t *pDisp, const void *self)
 {
     UNUSED(self);
@@ -200,6 +208,7 @@ static const void *cmsx_menuGoproSetFps(displayPort_t *pDisp, const void *self)
     return cmsx_menuGoproSendIndexedSetting(pDisp, &goproFpsIndex, goproFpsOptions, ARRAYLEN(goproFpsOptions), GOPRO_SETTING_FPS);
 }
 
+// Applies the selected lens mode.
 static const void *cmsx_menuGoproSetLens(displayPort_t *pDisp, const void *self)
 {
     UNUSED(self);
@@ -207,6 +216,7 @@ static const void *cmsx_menuGoproSetLens(displayPort_t *pDisp, const void *self)
     return cmsx_menuGoproSendIndexedSetting(pDisp, &goproLensIndex, goproLensOptions, ARRAYLEN(goproLensOptions), GOPRO_SETTING_LENS);
 }
 
+// Applies the selected HyperSmooth mode.
 static const void *cmsx_menuGoproSetHypersmooth(displayPort_t *pDisp, const void *self)
 {
     UNUSED(self);
@@ -214,6 +224,7 @@ static const void *cmsx_menuGoproSetHypersmooth(displayPort_t *pDisp, const void
     return cmsx_menuGoproSendIndexedSetting(pDisp, &goproHypersmoothIndex, goproHypersmoothOptions, ARRAYLEN(goproHypersmoothOptions), GOPRO_SETTING_HYPERSMOOTH);
 }
 
+// Initializes menu tab values from the latest GoPro state when entering the menu.
 static const void *cmsx_menuGoproOnEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -227,6 +238,7 @@ static const void *cmsx_menuGoproOnEnter(displayPort_t *pDisp)
     return NULL;
 }
 
+// Safely copies status text into a fixed-size menu buffer with fallback handling.
 static void cmsx_menuGoproCopyStatusText(char *dst, size_t dstSize, const char *src, const char *fallback)
 {
     if (!dst || !dstSize) {
@@ -242,6 +254,7 @@ static void cmsx_menuGoproCopyStatusText(char *dst, size_t dstSize, const char *
     dst[dstSize - 1] = '\0';
 }
 
+// Refreshes dynamic status strings shown in the status submenu.
 static void cmsx_menuGoproRefreshStatus(void)
 {
     cmsx_menuGoproCopyStatusText(goproStatusBatteryText, sizeof(goproStatusBatteryText), osdGoproStatusGetBattery(), "--");
@@ -249,6 +262,7 @@ static void cmsx_menuGoproRefreshStatus(void)
     cmsx_menuGoproCopyStatusText(goproStatusLinkText, sizeof(goproStatusLinkText), osdGoproStatusGet()[0] ? "ONLINE" : NULL, "WAITING");
 }
 
+// Updates status strings once when entering the status submenu.
 static const void *cmsx_menuGoproStatusOnEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
@@ -258,6 +272,7 @@ static const void *cmsx_menuGoproStatusOnEnter(displayPort_t *pDisp)
     return NULL;
 }
 
+// Keeps status strings updated while the status submenu is displayed.
 static const void *cmsx_menuGoproStatusOnDisplayUpdate(displayPort_t *pDisp, const OSD_Entry *selected)
 {
     UNUSED(pDisp);
