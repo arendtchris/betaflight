@@ -23,3 +23,4 @@
 #include "cms/cms_types.h"
 
 extern CMS_Menu cmsx_menuGopro;
+extern CMS_Menu cmsx_menuGoproMission1Pro;

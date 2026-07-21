@@ -92,6 +92,7 @@ static const OSD_Entry menuFeaturesEntries[] =
 
 #if defined(USE_OSD) && ENABLE_OSD_CUSTOM_TEXT
     {"GOPRO", OME_Submenu, cmsMenuChange, &cmsx_menuGopro},
+    {"GOPRO M1 PRO", OME_Submenu, cmsMenuChange, &cmsx_menuGoproMission1Pro},
 #endif
 
 #if defined(USE_BLACKBOX)
