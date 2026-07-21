@@ -306,6 +306,7 @@ static CMS_Menu cmsx_menuGoproStatus = {
 static const OSD_Entry cmsx_menuGoproEntries[] =
 {
     {"--- GOPRO ---", OME_Label, NULL, NULL},
+    {"CONNECT", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=0&setting=0"},
     {"RECORD", OME_TAB, cmsx_menuGoproSetRecord, &goproCmsEntRecord},
     {"RESOLUTION", OME_TAB, cmsx_menuGoproSetResolution, &goproCmsEntResolution},
     {"FPS", OME_TAB, cmsx_menuGoproSetFps, &goproCmsEntFps},
