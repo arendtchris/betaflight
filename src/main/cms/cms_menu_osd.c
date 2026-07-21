@@ -33,7 +33,6 @@
 
 #include "cms/cms.h"
 #include "cms/cms_types.h"
-#include "cms/cms_menu_gopro.h"
 #include "cms/cms_menu_osd.h"
 
 #include "common/utils.h"
@@ -403,9 +402,6 @@ const OSD_Entry cmsx_menuOsdEntries[] =
     {"ACTIVE ELEM", OME_Submenu, cmsMenuChange, &menuOsdActiveElems},
     {"TIMERS",      OME_Submenu, cmsMenuChange, &menuTimers},
     {"ALARMS",      OME_Submenu, cmsMenuChange, &menuAlarms},
-#if ENABLE_OSD_CUSTOM_TEXT
-    {"GOPRO",       OME_Submenu, cmsMenuChange, &cmsx_menuGopro},
-#endif
 #endif
 #ifdef USE_MAX7456
     {"INVERT",    OME_Bool,  cmsx_max7456Update, &displayPortProfileMax7456_invert},

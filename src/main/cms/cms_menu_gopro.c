@@ -286,8 +286,8 @@ static const void *cmsx_menuGoproStatusOnDisplayUpdate(displayPort_t *pDisp, con
 static const OSD_Entry cmsx_menuGoproEntries[] =
 {
     {"---GOPRO SETTINGS---", OME_Label, NULL, NULL},
-    {"  LINK", OME_Label | DYNAMIC, NULL, goproStatusLinkText},
-    {"  BATTERY", OME_Label | DYNAMIC, NULL, goproStatusBatteryText},
+    {" LINK", OME_Label | DYNAMIC, NULL, goproStatusLinkText},
+    {" BATTERY", OME_Label | DYNAMIC, NULL, goproStatusBatteryText},
     {"CONNECT", OME_Funcall, cmsx_menuGoproConnect, NULL},
     {"RECORD", OME_TAB, cmsx_menuGoproSetRecord, &goproCmsEntRecord},
     {"RESOLUTION", OME_TAB, cmsx_menuGoproSetResolution, &goproCmsEntResolution},

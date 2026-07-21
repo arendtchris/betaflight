@@ -42,6 +42,9 @@
 #include "cms/cms_menu_osd.h"
 #include "cms/cms_menu_power.h"
 #include "cms/cms_menu_saveexit.h"
+#if defined(USE_OSD) && ENABLE_OSD_CUSTOM_TEXT
+#include "cms/cms_menu_gopro.h"
+#endif
 
 #ifdef USE_PERSISTENT_STATS
 #include "cms/cms_menu_persistent_stats.h"
@@ -86,6 +89,10 @@ static char batteryContinueAmount[18];
 static const OSD_Entry menuFeaturesEntries[] =
 {
     {"--- FEATURES ---", OME_Label, NULL, NULL},
+
+#if defined(USE_OSD) && ENABLE_OSD_CUSTOM_TEXT
+    {"GOPRO", OME_Submenu, cmsMenuChange, &cmsx_menuGopro},
+#endif
 
 #if defined(USE_BLACKBOX)
     {"BLACKBOX", OME_Submenu, cmsMenuChange, &cmsx_menuBlackbox},
