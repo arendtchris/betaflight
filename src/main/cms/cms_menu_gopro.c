@@ -96,6 +96,8 @@ static OSD_TAB_t goproCmsEntFps = { &goproFpsIndex, ARRAYLEN(goproFpsNames) - 1,
 static OSD_TAB_t goproCmsEntLens = { &goproLensIndex, ARRAYLEN(goproLensNames) - 1, goproLensNames };
 static OSD_TAB_t goproCmsEntHypersmooth = { &goproHypersmoothIndex, ARRAYLEN(goproHypersmoothNames) - 1, goproHypersmoothNames };
 
+static void cmsx_menuGoproRefreshStatus(void);
+
 // Sends a raw GoPro command string over the existing status/control UART link.
 static const void *cmsx_menuGoproSendCommand(displayPort_t *pDisp, const void *ptr)
 {
@@ -183,6 +185,14 @@ static const void *cmsx_menuGoproSendIndexedSetting(displayPort_t *pDisp, uint8_
     return cmsx_menuGoproSendCommand(pDisp, command);
 }
 
+// Sends the fixed GoPro connect command without exposing it as menu value text.
+static const void *cmsx_menuGoproConnect(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(self);
+
+    return cmsx_menuGoproSendCommand(pDisp, "option=0&setting=0");
+}
+
 // Applies the selected record state (start/stop).
 static const void *cmsx_menuGoproSetRecord(displayPort_t *pDisp, const void *self)
 {
@@ -233,6 +243,7 @@ static const void *cmsx_menuGoproOnEnter(displayPort_t *pDisp)
     cmsx_menuGoproSyncTabFromStatus(GOPRO_SETTING_FPS, goproFpsOptions, ARRAYLEN(goproFpsOptions), &goproFpsIndex);
     cmsx_menuGoproSyncTabFromStatus(GOPRO_SETTING_LENS, goproLensOptions, ARRAYLEN(goproLensOptions), &goproLensIndex);
     cmsx_menuGoproSyncTabFromStatus(GOPRO_SETTING_HYPERSMOOTH, goproHypersmoothOptions, ARRAYLEN(goproHypersmoothOptions), &goproHypersmoothIndex);
+    cmsx_menuGoproRefreshStatus();
 
     return NULL;
 }
@@ -261,17 +272,7 @@ static void cmsx_menuGoproRefreshStatus(void)
     cmsx_menuGoproCopyStatusText(goproStatusLinkText, sizeof(goproStatusLinkText), osdGoproStatusGet()[0] ? "ONLINE" : NULL, "WAITING");
 }
 
-// Updates status strings once when entering the status submenu.
-static const void *cmsx_menuGoproStatusOnEnter(displayPort_t *pDisp)
-{
-    UNUSED(pDisp);
-
-    cmsx_menuGoproRefreshStatus();
-
-    return NULL;
-}
-
-// Keeps status strings updated while the status submenu is displayed.
+// Keeps status strings updated while the GoPro menu is displayed.
 static const void *cmsx_menuGoproStatusOnDisplayUpdate(displayPort_t *pDisp, const OSD_Entry *selected)
 {
     UNUSED(pDisp);
@@ -282,37 +283,17 @@ static const void *cmsx_menuGoproStatusOnDisplayUpdate(displayPort_t *pDisp, con
     return NULL;
 }
 
-static const OSD_Entry cmsx_menuGoproStatusEntries[] =
-{
-    {"- STATUS -", OME_Label, NULL, NULL},
-    {"BATT", OME_Label | DYNAMIC, NULL, goproStatusBatteryText},
-    {"REC", OME_Label | DYNAMIC, NULL, goproStatusRecordingText},
-    {"LINK", OME_Label | DYNAMIC, NULL, goproStatusLinkText},
-    {"BACK", OME_Back, NULL, NULL},
-    {NULL, OME_END, NULL, NULL}
-};
-
-static CMS_Menu cmsx_menuGoproStatus = {
-#ifdef CMS_MENU_DEBUG
-    .GUARD_text = "MGOPROSTS",
-    .GUARD_type = OME_MENU,
-#endif
-    .onEnter = cmsx_menuGoproStatusOnEnter,
-    .onExit = NULL,
-    .onDisplayUpdate = cmsx_menuGoproStatusOnDisplayUpdate,
-    .entries = cmsx_menuGoproStatusEntries
-};
-
 static const OSD_Entry cmsx_menuGoproEntries[] =
 {
-    {"--- GOPRO ---", OME_Label, NULL, NULL},
-    {"CONNECT", OME_Funcall, cmsx_menuGoproSendCommand, (void *)"option=0&setting=0"},
+    {"---GOPRO SETTINGS---", OME_Label, NULL, NULL},
+    {"  LINK", OME_Label | DYNAMIC, NULL, goproStatusLinkText},
+    {"  BATTERY", OME_Label | DYNAMIC, NULL, goproStatusBatteryText},
+    {"CONNECT", OME_Funcall, cmsx_menuGoproConnect, NULL},
     {"RECORD", OME_TAB, cmsx_menuGoproSetRecord, &goproCmsEntRecord},
     {"RESOLUTION", OME_TAB, cmsx_menuGoproSetResolution, &goproCmsEntResolution},
     {"FPS", OME_TAB, cmsx_menuGoproSetFps, &goproCmsEntFps},
     {"LENS", OME_TAB, cmsx_menuGoproSetLens, &goproCmsEntLens},
     {"HYPERSMOOTH", OME_TAB, cmsx_menuGoproSetHypersmooth, &goproCmsEntHypersmooth},
-    {"STATUS", OME_Submenu, cmsMenuChange, &cmsx_menuGoproStatus},
     {"BACK", OME_Back, NULL, NULL},
     {NULL, OME_END, NULL, NULL}
 };
@@ -324,7 +305,7 @@ CMS_Menu cmsx_menuGopro = {
 #endif
     .onEnter = cmsx_menuGoproOnEnter,
     .onExit = NULL,
-    .onDisplayUpdate = NULL,
+    .onDisplayUpdate = cmsx_menuGoproStatusOnDisplayUpdate,
     .entries = cmsx_menuGoproEntries
 };
 
