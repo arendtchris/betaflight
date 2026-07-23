@@ -35,6 +35,8 @@ extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
 #define OSD_ELEMENT_BUFFER_LENGTH 32
 
 #define OSD_PROFILE_NAME_LENGTH 16
+#define GOPRO_SSID_MAX_LENGTH 32
+#define GOPRO_PASS_MAX_LENGTH 63
 
 #ifdef USE_OSD_PROFILES
 #define OSD_PROFILE_COUNT 3
@@ -382,6 +384,8 @@ typedef struct osdConfig_s {
     uint16_t aux_scale;
     uint8_t aux_symbol;
     uint8_t gopro_aux_channel; /* AUX channel to control GoPro UART (1..N) */
+    char gopro_ssid[GOPRO_SSID_MAX_LENGTH + 1];
+    char gopro_pass[GOPRO_PASS_MAX_LENGTH + 1];
     uint8_t canvas_cols;                      // Canvas dimensions for HD display
     uint8_t canvas_rows;
 #ifdef USE_OSD_QUICK_MENU

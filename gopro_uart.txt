@@ -3,5 +3,8 @@ set osd_profile = 1
 
 set osd_gopro_recording_pos = 2339
 set osd_gopro_battery_pos = 2444
-set osd_gopro_aux_channel = 1
+set osd_gopro_aux_channel = 2
+set gopro_ssid=GoProhero11
+set gopro_pass=fj5-8qB-pny
+
 save

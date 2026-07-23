@@ -62,15 +62,16 @@ static void osdGoproStatusUpdateCaches(void)
     goproJsonExtractValue(statusStart, statusEnd, "8", goproRecordingValue, sizeof(goproRecordingValue));
 }
 
-/* Send a raw command line to the GoPro status port. */
+/* Send a JSON command line to the GoPro status port. */
 bool osdGoproStatusSendCommand(uint16_t optionId,  uint16_t settingId)
 {
     if (!goproSerialPort) {
         return false;
     }
 
-    char command[32];
-    tfp_sprintf(command, "option=%u&setting=%u", optionId, settingId);
+    char command[192];
+    tfp_sprintf(command, "{\"option\":%u,\"setting\":%u,\"ssid\":\"%s\",\"pass\":\"%s\"}", optionId, settingId, osdConfig()->gopro_ssid, osdConfig()->gopro_pass);
+
     serialWriteBuf(goproSerialPort, (const uint8_t *)command, strlen(command));
     serialWrite(goproSerialPort, '\n');
     return true;
@@ -155,7 +156,10 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
                 osdGoproStatusSendCommand(1, 8);
             } else if (!curHigh && prevAuxHigh) {
                 osdGoproStatusSendCommand(0,8);
-            } 
+            } else {
+                // no change
+               // osdGoproStatusSendCommand(0,8);
+            }
             prevAuxHigh = curHigh;
         }
     }
