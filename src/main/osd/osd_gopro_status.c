@@ -28,6 +28,7 @@
 #include "drivers/serial.h"
 #include "io/serial.h"
 #include "common/gopro_json.h"
+#include "common/printf.h"
 #include "common/time.h"
 #include "rx/rx.h"
 #include "osd/osd.h"
@@ -44,6 +45,7 @@ static char goproDisplayBuffer[GOPRO_DISPLAY_BUFFER_SIZE];
 static char goproBatteryValue[GOPRO_BATTERY_VALUE_SIZE];
 static char goproRecordingValue[GOPRO_RECORDING_VALUE_SIZE];
 
+/* Extract cached status fields from the latest GoPro status JSON line. */
 static void osdGoproStatusUpdateCaches(void)
 {
     const char *statusStart;
@@ -60,17 +62,21 @@ static void osdGoproStatusUpdateCaches(void)
     goproJsonExtractValue(statusStart, statusEnd, "8", goproRecordingValue, sizeof(goproRecordingValue));
 }
 
-bool osdGoproStatusSendCommand(const char *command)
+/* Send a raw command line to the GoPro status port. */
+bool osdGoproStatusSendCommand(uint16_t optionId,  uint16_t settingId)
 {
-    if (!goproSerialPort || !command || !command[0]) {
+    if (!goproSerialPort) {
         return false;
     }
 
+    char command[32];
+    tfp_sprintf(command, "option=%u&setting=%u", optionId, settingId);
     serialWriteBuf(goproSerialPort, (const uint8_t *)command, strlen(command));
     serialWrite(goproSerialPort, '\n');
     return true;
 }
 
+/* Open the configured serial port and reset all GoPro status caches. */
 bool osdGoproStatusInit(void)
 {
     const serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_OSD_GOPRO_STATUS);
@@ -107,6 +113,7 @@ bool osdGoproStatusInit(void)
     return true;
 }
 
+/* Consume incoming GoPro status lines and update cached fields. */
 void osdGoproStatusUpdate(timeUs_t currentTimeUs)
 {
     UNUSED(currentTimeUs);
@@ -134,9 +141,9 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
         }
     }
 
-    // AUX -> GoPro control: send start/stop on AUX toggle
+    /* Map the configured AUX channel to GoPro record start/stop commands. */
     {
-        // aux channel configured in OSD settings is 1-based for AUX1.., convert to rcData index
+        /* The configured AUX channel is 1-based, so convert it to the rcData index. */
         const uint8_t auxCfg = osdConfig()->gopro_aux_channel; // 1..N
         if (auxCfg > 0) {
             const int auxIndex = auxCfg + NON_AUX_CHANNEL_COUNT - 1;
@@ -145,25 +152,28 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
             const bool curHigh = rcData[auxIndex] > mid;
 
             if (curHigh && !prevAuxHigh) {
-                osdGoproStatusSendCommand("option=1&setting=8");
+                osdGoproStatusSendCommand(1, 8);
             } else if (!curHigh && prevAuxHigh) {
-                osdGoproStatusSendCommand("option=0&setting=8");
+                osdGoproStatusSendCommand(0,8);
             } 
             prevAuxHigh = curHigh;
         }
     }
 }
 
+/* Return the latest raw GoPro status JSON payload. */
 const char *osdGoproStatusGet(void)
 {
     return goproDisplayBuffer;
 }
 
+/* Return the cached battery value parsed from the latest status line. */
 const char *osdGoproStatusGetBattery(void)
 {
     return goproBatteryValue;
 }
 
+/* Return the cached recording state parsed from the latest status line. */
 const char *osdGoproStatusGetRecording(void)
 {
     return goproRecordingValue;
