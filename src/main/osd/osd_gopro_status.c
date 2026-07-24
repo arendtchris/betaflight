@@ -146,25 +146,36 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
         }
     }
 
-    /* Map the configured AUX channel to GoPro record start/stop commands. */
+    /* Map the configured AUX channel to LOW/MID/HIGH states. */
     {
         /* The configured AUX channel is 1-based, so convert it to the rcData index. */
         const uint8_t auxCfg = osdConfig()->gopro_aux_channel; // 1..N
         if (auxCfg > 0) {
             const int auxIndex = auxCfg + NON_AUX_CHANNEL_COUNT - 1;
-            static bool prevAuxHigh = false;
-            const float mid = rxConfig()->midrc;
-            const bool curHigh = rcData[auxIndex] > mid;
+            static int8_t prevAuxState = 0; // -1: LOW, 0: MID, 1: HIGH
+            const int16_t delta = (int16_t)rcData[auxIndex] - (int16_t)rxConfig()->midrc;
+            int8_t curAuxState = 0;
 
-            if (curHigh && !prevAuxHigh) {
-                osdGoproStatusSendCommand(1, 8);
-            } else if (!curHigh && prevAuxHigh) {
-                osdGoproStatusSendCommand(0,8);
-            } else {
-                // no change
-               // osdGoproStatusSendCommand(0,8);
+            if (delta > 200) {
+                curAuxState = 1;
+            } else if (delta < -200) {
+                curAuxState = -1;
             }
-            prevAuxHigh = curHigh;
+
+            if (curAuxState != prevAuxState) {
+                if (curAuxState > 0) {
+                    // HIGH command connect GoPro
+                     osdGoproStatusSendCommand(0, 0);
+                } else if (curAuxState < 0) {
+                    // LOW command stop recording
+                     osdGoproStatusSendCommand(0, 8);
+                } else {
+                    // MID command start recording
+                     osdGoproStatusSendCommand(1, 8);
+                }
+
+                prevAuxState = curAuxState;
+            }
         }
     }
 }

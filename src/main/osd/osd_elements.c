@@ -747,12 +747,12 @@ static void osdElementGoproBattery(osdElementParms_t *element)
         }
 
         if (numeric) {
-            tfp_sprintf(element->buff, "GBAT:%s%%", batteryValue);
+            tfp_sprintf(element->buff, "CAM::BAT %s%%", batteryValue);
         } else {
-            tfp_sprintf(element->buff, "GBAT:%s", batteryValue);
+            tfp_sprintf(element->buff, "CAM::BAT %s", batteryValue);
         }
     } else {
-        strcpy(element->buff, "GBAT:---");
+        strcpy(element->buff, "CAM::BAT ---");
     }
 }
 
@@ -761,9 +761,9 @@ static void osdElementGoproRecording(osdElementParms_t *element)
     const char *recordingValue = osdGoproStatusGetRecording();
 
     if (recordingValue && recordingValue[0] != '\0') {
-        tfp_sprintf(element->buff, "G-REC: %s", recordingValue);
+        tfp_sprintf(element->buff, "CAM::REC %s", recordingValue);
     } else {
-        strcpy(element->buff, "G-REC: ---");
+        strcpy(element->buff, "CAM::REC ---");
     }
 }
 #endif
