@@ -101,8 +101,7 @@ static void cmsx_menuGoproRefreshStatus(void);
 // Sends a raw GoPro command string over the existing status/control UART link.
 static const void *cmsx_menuGoproSendCommand(uint16_t optionId,  uint16_t settingId)
 {
-    //char command[32];
-    //tfp_sprintf(command, "option=%u&setting=%u", optionId, settingId);
+   
     osdGoproStatusSendCommand( optionId, settingId);
     return NULL;
 }
@@ -271,7 +270,7 @@ static void cmsx_menuGoproRefreshStatus(void)
     cmsx_menuGoproCopyStatusText(goproStatusRecordingText, sizeof(goproStatusRecordingText), osdGoproStatusGetRecording(), "--");
 
     // refactor using a helper function 
-    cmsx_menuGoproCopyStatusText(goproStatusLinkText, sizeof(goproStatusLinkText), osdGoproStatusGet()[0] ? "ONLINE" : NULL, "WAITING");
+    cmsx_menuGoproCopyStatusText(goproStatusLinkText, sizeof(goproStatusLinkText), osdGoproStatusGet() , "OFFLINE");
 }
 
 // Keeps status strings updated while the GoPro menu is displayed.
