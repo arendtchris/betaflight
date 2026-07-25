@@ -267,8 +267,6 @@ static void cmsx_menuGoproCopyStatusText(char *dst, size_t dstSize, const char *
 static void cmsx_menuGoproRefreshStatus(void)
 {
     cmsx_menuGoproCopyStatusText(goproStatusBatteryText, sizeof(goproStatusBatteryText), osdGoproStatusGetBattery(), "--");
-    cmsx_menuGoproCopyStatusText(goproStatusRecordingText, sizeof(goproStatusRecordingText), osdGoproStatusGetRecording(), "--");
-
     // refactor using a helper function 
     cmsx_menuGoproCopyStatusText(goproStatusLinkText, sizeof(goproStatusLinkText), osdGoproStatusGet() , "OFFLINE");
 }

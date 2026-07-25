@@ -1,6 +1,6 @@
 
 # version
-# Betaflight / STM32F7X2 (F722) 2026.6.0-alpha Jul 21 2026 / 23:24:23 (norevision) MSP API: 1.48
+# Betaflight / STM32F7X2 (F722) 2026.6.0-alpha Jul 24 2026 / 11:53:13 (norevision) MSP API: 1.48
 # config rev: bf84bc8
 
 # start the command batch
@@ -27,9 +27,11 @@ map TAER1234
 
 # master
 set acc_calibration = 6,341,242,1
-set osd_warnings_pos = 14608
+set osd_warnings_pos = 272
 set osd_displayport_device = AUTO
 set osd_gopro_aux_channel = 2
+set gopro_ssid = GoProhero11
+set gopro_pass = fj5-8qB-pny
 set osd_gopro_battery_pos = 2444
 set osd_gopro_recording_pos = 2339
 set vcd_video_system = AUTO
