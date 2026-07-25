@@ -38,6 +38,7 @@
 #define GOPRO_STATUS_VALUE_SIZE 8
 #define GOPRO_BATTERY_VALUE_SIZE 8
 #define GOPRO_RECORDING_VALUE_SIZE 16
+#define GOPRO_REMAINING_TIME_VALUE_SIZE 16
 
 static serialPort_t *goproSerialPort = NULL;
 static char goproInputBuffer[GOPRO_INPUT_BUFFER_SIZE];
@@ -46,6 +47,7 @@ static char goproDisplayBuffer[GOPRO_DISPLAY_BUFFER_SIZE];
 static char goproBatteryValue[GOPRO_BATTERY_VALUE_SIZE];
 static char goproStatusValue[GOPRO_STATUS_VALUE_SIZE];
 static char goproRecordingValue[GOPRO_RECORDING_VALUE_SIZE];
+static char goproRemainingTimeValue[GOPRO_REMAINING_TIME_VALUE_SIZE];
 
 /* Extract cached status fields from the latest GoPro status JSON line. */
 static void osdGoproStatusUpdateCaches(void)
@@ -56,6 +58,7 @@ static void osdGoproStatusUpdateCaches(void)
     goproStatusValue[0] = '\0';
     goproBatteryValue[0] = '\0';
     goproRecordingValue[0] = '\0';
+    goproRemainingTimeValue[0] = '\0';
 
     if (!goproJsonExtractObjectRange(goproDisplayBuffer, "status", &statusStart, &statusEnd)) {
         return;
@@ -64,6 +67,8 @@ static void osdGoproStatusUpdateCaches(void)
     goproJsonExtractValue(statusStart, statusEnd, "70", goproBatteryValue, sizeof(goproBatteryValue));
     goproJsonExtractValue(statusStart, statusEnd, "8", goproRecordingValue, sizeof(goproRecordingValue));
     goproJsonExtractValue(statusStart, statusEnd, "1", goproStatusValue, sizeof(goproStatusValue));
+    goproJsonExtractValue(statusStart, statusEnd, "35", goproRemainingTimeValue, sizeof(goproRemainingTimeValue));
+    
 }
 
 /* Send a JSON command line to the GoPro status port. */
@@ -113,6 +118,7 @@ bool osdGoproStatusInit(void)
     memset(goproDisplayBuffer, 0, sizeof(goproDisplayBuffer));
     memset(goproBatteryValue, 0, sizeof(goproBatteryValue));
     memset(goproRecordingValue, 0, sizeof(goproRecordingValue));
+    memset(goproRemainingTimeValue, 0, sizeof(goproRemainingTimeValue));
     goproInputPos = 0;
 
     return true;
@@ -180,8 +186,14 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
     }
 }
 
-/* Return ONLINE/OFFLINE based on the cached GoPro connection status. */
+/* Return the latest raw GoPro status JSON payload. */
 const char *osdGoproStatusGet(void)
+{
+    return goproDisplayBuffer;
+}
+
+/* Return ONLINE/OFFLINE based on the cached GoPro connection status. */
+const char *osdGoproStatusGetLink(void)
 {
     return (strcmp(goproStatusValue, "1") == 0) ? "ONLINE" : "OFFLINE";
 }
@@ -196,6 +208,12 @@ const char *osdGoproStatusGetBattery(void)
 const char *osdGoproStatusGetRecording(void)
 {
     return goproRecordingValue;
+}
+
+/* Return the cached remaining recording time parsed from the latest status line. */
+const char *osdGoproStatusGetRemainingRecordingTime(void)
+{
+    return goproRemainingTimeValue;
 }
 
 #endif

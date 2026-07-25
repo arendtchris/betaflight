@@ -83,7 +83,6 @@ static const uint16_t goproHypersmoothOptions[] = {
 };
 
 static char goproStatusBatteryText[GOPRO_STATUS_BATTERY_TEXT_SIZE];
-static char goproStatusRecordingText[GOPRO_STATUS_RECORDING_TEXT_SIZE];
 static char goproStatusLinkText[GOPRO_STATUS_LINK_TEXT_SIZE];
 static uint8_t goproRecordIndex = 0;
 static uint8_t goproResolutionIndex = 2;
@@ -268,7 +267,7 @@ static void cmsx_menuGoproRefreshStatus(void)
 {
     cmsx_menuGoproCopyStatusText(goproStatusBatteryText, sizeof(goproStatusBatteryText), osdGoproStatusGetBattery(), "--");
     // refactor using a helper function 
-    cmsx_menuGoproCopyStatusText(goproStatusLinkText, sizeof(goproStatusLinkText), osdGoproStatusGet() , "OFFLINE");
+    cmsx_menuGoproCopyStatusText(goproStatusLinkText, sizeof(goproStatusLinkText), osdGoproStatusGetLink(), "OFFLINE");
 }
 
 // Keeps status strings updated while the GoPro menu is displayed.

@@ -758,6 +758,20 @@ static void osdElementGoproRecording(osdElementParms_t *element)
         strcpy(element->buff, "CAM::REC --");
     }
 }
+
+static void osdElementGoproRemainingRecordingTime(osdElementParms_t *element)
+{
+    const char *remaining = osdGoproStatusGetRemainingRecordingTime();
+
+    if (remaining && remaining[0] != '\0') {
+        int seconds = atoi(remaining);
+         int minutes = seconds / 60;
+
+        tfp_sprintf(element->buff, "::TIME %d MIN", minutes);
+    } else {
+        strcpy(element->buff, "::TIME --");
+    }
+}
 #endif
 
 #ifdef USE_PROFILE_NAMES
@@ -2030,6 +2044,7 @@ static const uint8_t osdElementDisplayOrder[] = {
 #endif
 #if ENABLE_OSD_CUSTOM_TEXT
     OSD_CUSTOM_SERIAL_TEXT,
+    OSD_GOPRO_STATUS,
     OSD_GOPRO_BATTERY,
     OSD_GOPRO_RECORDING,
 #endif
@@ -2183,6 +2198,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
 #endif
 #if ENABLE_OSD_CUSTOM_TEXT
     [OSD_CUSTOM_SERIAL_TEXT]      = osdElementCustomSerialText,
+    [OSD_GOPRO_STATUS]            = osdElementGoproRemainingRecordingTime,
     [OSD_GOPRO_BATTERY]          = osdElementGoproBattery,
     [OSD_GOPRO_RECORDING]         = osdElementGoproRecording,
 #endif
