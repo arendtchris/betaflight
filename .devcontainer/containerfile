@@ -1,6 +1,6 @@
 # Use Debian 13 (Trixie) as base
-FROM docker.io/library/debian:13-slim
-
+#FROM docker.io/library/debian:13-slim
+FROM --platform=linux/amd64 docker.io/library/debian:13-slim
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
