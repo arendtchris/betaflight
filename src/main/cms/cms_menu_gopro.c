@@ -140,32 +140,6 @@ static void cmsx_menuGoproSyncTabFromStatus(uint16_t settingId, const uint16_t *
     }
 }
 
-// Syncs the record tab from status key 8, which reflects current recording state.
-/*static void cmsx_menuGoproSyncRecordTabFromStatus(void)
-{
-    uint16_t recordingValue;
-    const char *statusText = osdGoproStatusGet();
-    const char *statusStart;
-    const char *statusEnd;
-
-    if (!statusText || !statusText[0]) {
-        return;
-    }
-
-    if (!goproJsonExtractObjectRange(statusText, "status", &statusStart, &statusEnd)) {
-        return;
-    }
-
-    if (!goproJsonExtractUint16(statusStart, statusEnd, "8", &recordingValue)) {
-        return;
-    }
-
-    const int8_t matchedIndex = cmsx_menuGoproFindOptionIndex(goproRecordOptions, ARRAYLEN(goproRecordOptions), recordingValue);
-    if (matchedIndex >= 0) {
-        goproRecordIndex = (uint8_t)matchedIndex;
-    }
-}*/
-
 // Builds and sends a setting command using the currently selected tab option.
 static const void *cmsx_menuGoproSendIndexedSetting(displayPort_t *pDisp, uint8_t *selectedIndex, const uint16_t *options, uint8_t optionCount, uint16_t settingId)
 {
