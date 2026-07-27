@@ -33,6 +33,8 @@ ifeq ($(OSFAMILY)-$(ARCHFAMILY), linux-x86_64)
 else ifeq ($(OSFAMILY)-$(ARCHFAMILY), linux-aarch64)
   ARM_SDK_URL :=
   DL_CHECKSUM :=
+  ARM_SDK_PREFIX := arm-none-eabi-
+  GCC_REQUIRED_VERSION := 14.2.1
 else ifeq ($(OSFAMILY)-$(ARCHFAMILY), macosx-x86_64)
   ARM_SDK_URL := https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-darwin-x86_64-arm-none-eabi.tar.xz
   DL_CHECKSUM = 4bb141e44b831635fde4e8139d470f1f
