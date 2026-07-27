@@ -31,7 +31,6 @@ ifeq ($(OSFAMILY)-$(ARCHFAMILY), linux-x86_64)
   ARM_SDK_URL := https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi.tar.xz
   DL_CHECKSUM = 0601a9588bc5b9c99ad2b56133b7f118
 else ifeq ($(OSFAMILY)-$(ARCHFAMILY), linux-aarch64)
-  # Prefer a locally installed toolchain on Linux aarch64 (e.g. Debian/Ubuntu packages).
   ARM_SDK_URL :=
   DL_CHECKSUM :=
 else ifeq ($(OSFAMILY)-$(ARCHFAMILY), macosx-x86_64)
@@ -65,14 +64,12 @@ arm_sdk_install: | $(TOOLS_DIR)
 arm_sdk_install: arm_sdk_download $(SDK_INSTALL_MARKER)
 
 $(SDK_INSTALL_MARKER): $(DL_DIR)/$(ARM_SDK_FILE)
-ifneq ($(strip $(DL_CHECKSUM)),)
         # verify ckecksum first
 	@checksum=$$(md5sum "$<" | awk '{print $$1}'); \
 	if [ "$$checksum" != "$(DL_CHECKSUM)" ]; then \
 		echo "$@ Checksum mismatch! Expected $(DL_CHECKSUM), got $$checksum."; \
 		exit 1; \
 	fi
-endif
 ifeq ($(OSFAMILY), windows)
 	$(V1) unzip -q -d $(TOOLS_DIR) "$<"
 else
@@ -282,7 +279,7 @@ zip_clean:
 ##############################
 
 ifeq ($(shell [ -d "$(ARM_SDK_DIR)" ] && echo "exists"), exists)
-  ARM_SDK_PREFIX := $(ARM_SDK_DIR)/bin/arm-none-eabi-
+  ARM_SDK_PREFIX ?= $(ARM_SDK_DIR)/bin/arm-none-eabi-
 else ifeq (,$(filter %_sdk %_install test% clean% %-print checks help configs platform-%, $(MAKECMDGOALS)))
   # Try to find ARM toolchain in PATH (validated later after platform is known)
   GCC_VERSION = $(shell arm-none-eabi-gcc -dumpversion 2>/dev/null)
