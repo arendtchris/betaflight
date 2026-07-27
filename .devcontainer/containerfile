@@ -1,6 +1,6 @@
 # Use Debian 13 (Trixie) as base
-#FROM docker.io/library/debian:13-slim
-FROM --platform=linux/amd64 docker.io/library/debian:13-slim
+FROM docker.io/library/debian:13-slim
+
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -82,6 +82,13 @@ RUN groupadd --gid $USER_GID $USERNAME && \
     useradd --uid $USER_UID --gid $USER_GID -m $USERNAME --shell /bin/bash && \
     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gcc-arm-none-eabi \
+        binutils-arm-none-eabi \
+        libnewlib-arm-none-eabi \
+        gdb-multiarch \
+    && rm -rf /var/lib/apt/lists/*
 # Switch to non-root user
 USER $USERNAME
 

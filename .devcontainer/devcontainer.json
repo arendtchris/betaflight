@@ -9,7 +9,6 @@
   "image": "betaflight-devcontainer:latest",
 
   "runArgs": [
-    "--platform=linux/amd64",
     "--userns=host",
     "--volume=/dev:/dev"
   ],
