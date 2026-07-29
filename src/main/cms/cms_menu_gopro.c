@@ -37,6 +37,7 @@
 #define GOPRO_STATUS_RECORDING_TEXT_SIZE 16
 #define GOPRO_STATUS_LINK_TEXT_SIZE 16
 // gopro setting ids 
+#define GOPRO_COMMAND_CONNECT 0
 #define GOPRO_SETTING_RECORD 8
 #define GOPRO_SETTING_RESOLUTION 2
 #define GOPRO_SETTING_FPS 3
@@ -161,7 +162,7 @@ static const void *cmsx_menuGoproConnect(displayPort_t *pDisp, const void *self)
     UNUSED(pDisp);
     UNUSED(self);
 
-    return cmsx_menuGoproSendCommand(0, 0);
+    return cmsx_menuGoproSendCommand(GOPRO_COMMAND_CONNECT, 0);
 }
 
 // Applies the selected record state (start/stop).
