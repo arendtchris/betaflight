@@ -739,10 +739,10 @@ static void osdElementGoproBattery(osdElementParms_t *element)
 
     if (batteryValue && batteryValue[0] != '\0') {
         
-        tfp_sprintf(element->buff, "::BAT %s%%", batteryValue);
+        tfp_sprintf(element->buff, "CAM:BAT %s%%", batteryValue);
         
     } else {
-        strcpy(element->buff, "::BAT --");
+        strcpy(element->buff, "CAM:BAT --");
     }
 }
 
@@ -753,9 +753,9 @@ static void osdElementGoproRecording(osdElementParms_t *element)
     if (recordingValue && recordingValue[0] != '\0') {
         const bool isRecording = (strcmp(recordingValue, "1") == 0);
         
-        tfp_sprintf(element->buff, "CAM::REC %s", isRecording ? "ON" : "OFF");
+        tfp_sprintf(element->buff, "CAM:REC %s", isRecording ? "ON" : "OFF");
     } else {
-        strcpy(element->buff, "CAM::REC --");
+        strcpy(element->buff, "CAM:REC --");
     }
 }
 
@@ -767,9 +767,9 @@ static void osdElementGoproRemainingRecordingTime(osdElementParms_t *element)
         int seconds = atoi(remaining);
          int minutes = seconds / 60;
 
-        tfp_sprintf(element->buff, "::TIME %d MIN", minutes);
+        tfp_sprintf(element->buff, "CAM:MIN %d ", minutes);
     } else {
-        strcpy(element->buff, "::TIME --");
+        strcpy(element->buff, "CAM:MIN --");
     }
 }
 #endif
