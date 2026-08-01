@@ -30,6 +30,7 @@
 #include "common/gopro_json.h"
 #include "common/printf.h"
 #include "common/time.h"
+#include "fc/runtime_config.h"
 #include "rx/rx.h"
 #include "osd/osd.h"
 
@@ -169,16 +170,21 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
             }
 
             if (curAuxState != prevAuxState) {
-                if (curAuxState > 0) {
-                    // HIGH command connect GoPro
-                     osdGoproStatusSendCommand(0, 0);
-                } else if (curAuxState < 0) {
-                    // LOW command stop recording
-                     osdGoproStatusSendCommand(0, 8);
-                } else {
-                    // MID command start recording
-                     osdGoproStatusSendCommand(1, 8);
-                }
+                    
+                    if (curAuxState > 0) {
+                        // HIGH command connect GoPro
+                         if (!ARMING_FLAG(ARMED)) {
+                            // connect GoPro only if not armed, otherwise it will disconnect the GoPro         
+                            osdGoproStatusSendCommand(0, 0);
+                         }
+                    } else if (curAuxState < 0) {
+                        // LOW command stop recording
+                        osdGoproStatusSendCommand(0, 8);
+                    } else {
+                        // MID command start recording
+                        osdGoproStatusSendCommand(1, 8);
+                    }
+                
 
                 prevAuxState = curAuxState;
             }

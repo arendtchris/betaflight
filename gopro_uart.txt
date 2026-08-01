@@ -1,11 +1,17 @@
-gopro_uart UART3 115200
+gopro_uart UART4 115200
 set osd_profile = 1
 
 set osd_gopro_recording_pos = 2049
 set osd_gopro_battery_pos = 2062
 set osd_gopro_remaining_time_pos = 2444
 set osd_gopro_aux_channel = 2
-set gopro_ssid=GP24741864
-set gopro_pass=DPX-ykH-S9y
+
+# Gopro11 Mini
+#set gopro_ssid=GP24741864
+#set gopro_pass=DPX-ykH-S9y
+
+# Gopro11
+set gopro_ssid=GoProhero11
+set gopro_pass=fj5-8qB-pny
 
 save

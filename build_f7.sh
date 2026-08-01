@@ -4,6 +4,9 @@ set -u
 
 JOBS=${JOBS:-$(nproc)}
 
+# Zusätzliche Compiler-Defines
+EXTRA_FLAGS="-DUSE_GPS"
+
 SUCCESS=()
 FAILED=()
 
@@ -20,9 +23,10 @@ for TARGET in $TARGETS; do
     echo
     echo "=========================================================="
     echo "[$COUNT/$TOTAL] Building $TARGET"
+    echo "Extra Flags: ${EXTRA_FLAGS}"
     echo "=========================================================="
 
-    if make -j${JOBS} "$TARGET"; then
+    if make -j${JOBS} "$TARGET" EXTRA_FLAGS="${EXTRA_FLAGS}"; then
         SUCCESS+=("$TARGET")
     else
         FAILED+=("$TARGET")
