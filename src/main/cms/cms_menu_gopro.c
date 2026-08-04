@@ -31,7 +31,7 @@
 #include "cms/cms.h"
 #include "cms/cms_types.h"
 #include "cms/cms_menu_gopro.h"
-#include "cms/cms_menu_gopro_settings.h"
+#include "cms/cms_menu_gopro11_settings.h"
 #include "osd/osd_gopro_status.h"
 
 // Buffer sizes for the dynamic status text shown in the GoPro CMS menu.
@@ -40,7 +40,7 @@
 
 // Fixed command used for the CONNECT action in the GoPro menu.
 #define GOPRO_COMMAND_CONNECT 0
-#define GOPRO_MENU_ENTRY_COUNT 11
+#define GOPRO_MENU_ENTRY_COUNT (4 + GOPRO_SETTING_COUNT + 2)
 
 // Dynamic status text for the menu entries that display battery and link state.
 static char goproStatusBatteryText[GOPRO_STATUS_BATTERY_TEXT_SIZE];
@@ -49,6 +49,7 @@ static char goproStatusLinkText[GOPRO_STATUS_LINK_TEXT_SIZE];
 static OSD_Entry cmsx_menuGoproEntries[GOPRO_MENU_ENTRY_COUNT];
 static void cmsx_menuGoproRefreshStatus(void);
 static void cmsx_menuGoproUpdateTabData(goproCmsSettingTable_t *setting);
+static void cmsx_menuGoproInitEntries(void);
 
 // Sends a raw GoPro command over the existing status/control UART link.
 static const void *cmsx_menuGoproSendCommand(uint16_t optionId,  uint16_t settingId)
@@ -127,6 +128,40 @@ static void cmsx_menuGoproUpdateTabData(goproCmsSettingTable_t *setting)
     setting->tab.names = setting->labels;
 }
 
+// Initializes the CMS menu entries so they point at the OSD_TAB descriptors owned by the settings table.
+static void cmsx_menuGoproInitEntries(void)
+{
+    const uint8_t staticEntryCount = 4;
+    const uint8_t settingsStartIndex = staticEntryCount;
+    const uint8_t backEntryIndex = settingsStartIndex + cmsMenuGoproGetSettingsCount();
+    goproCmsSettingTable_t *settings = cmsMenuGoproGetSettings();
+    const uint8_t settingCount = cmsMenuGoproGetSettingsCount();
+
+    memset(cmsx_menuGoproEntries, 0, sizeof(cmsx_menuGoproEntries));
+
+    cmsx_menuGoproEntries[0] = (OSD_Entry){"---GOPRO SETTINGS---", OME_Label, NULL, NULL};
+    cmsx_menuGoproEntries[1] = (OSD_Entry){" LINK", OME_Label | DYNAMIC, NULL, goproStatusLinkText};
+    cmsx_menuGoproEntries[2] = (OSD_Entry){" BATTERY", OME_Label | DYNAMIC, NULL, goproStatusBatteryText};
+    cmsx_menuGoproEntries[3] = (OSD_Entry){"CONNECT", OME_Funcall, cmsx_menuGoproConnect, NULL};
+
+    for (uint8_t index = 0; index < settingCount; index++) {
+        goproCmsSettingTable_t *setting = &settings[index];
+        const uint8_t entryIndex = settingsStartIndex + index;
+
+        if (entryIndex >= GOPRO_MENU_ENTRY_COUNT - 2) {
+            break;
+        }
+
+        cmsx_menuGoproEntries[entryIndex].text = setting->displayLabel;
+        cmsx_menuGoproEntries[entryIndex].flags = OME_TAB;
+        cmsx_menuGoproEntries[entryIndex].func = setting->callback;
+        cmsx_menuGoproEntries[entryIndex].data = &setting->tab;
+    }
+
+    cmsx_menuGoproEntries[backEntryIndex] = (OSD_Entry){"BACK", OME_Back, NULL, NULL};
+    cmsx_menuGoproEntries[backEntryIndex + 1] = (OSD_Entry){NULL, OME_END, NULL, NULL};
+}
+
 // Initializes the menu state from the latest GoPro status when the CMS menu is entered.
 static const void *cmsx_menuGoproOnEnter(displayPort_t *pDisp)
 {
@@ -141,6 +176,8 @@ static const void *cmsx_menuGoproOnEnter(displayPort_t *pDisp)
         cmsx_menuGoproSyncTabFromStatus(setting);
         cmsx_menuGoproUpdateTabData(setting);
     }
+
+    cmsx_menuGoproInitEntries();
 
     return NULL;
 }
@@ -180,20 +217,7 @@ static const void *cmsx_menuGoproStatusOnDisplayUpdate(displayPort_t *pDisp, con
     return NULL;
 }
 
-static OSD_Entry cmsx_menuGoproEntries[] =
-{
-    {"---GOPRO SETTINGS---", OME_Label, NULL, NULL},
-    {" LINK", OME_Label | DYNAMIC, NULL, goproStatusLinkText},
-    {" BATTERY", OME_Label | DYNAMIC, NULL, goproStatusBatteryText},
-    {"CONNECT", OME_Funcall, cmsx_menuGoproConnect, NULL},
-    {"RECORD", OME_TAB, NULL, NULL},
-    {"RESOLUTION", OME_TAB, NULL, NULL},
-    {"FPS", OME_TAB, NULL, NULL},
-    {"LENS", OME_TAB, NULL, NULL},
-    {"HYPERSMOOTH", OME_TAB, NULL, NULL},
-    {"BACK", OME_Back, NULL, NULL},
-    {NULL, OME_END, NULL, NULL}
-};
+static OSD_Entry cmsx_menuGoproEntries[GOPRO_MENU_ENTRY_COUNT];
 
 CMS_Menu cmsx_menuGopro = {
 #ifdef CMS_MENU_DEBUG

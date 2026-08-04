@@ -21,7 +21,7 @@
 
 #if defined(USE_OSD) && defined(USE_CMS)
 
-#include "cms/cms_menu_gopro_settings.h"
+#include "cms/cms_menu_gopro11_settings.h"
 #include "cms/cms_types.h"
 #include "osd/osd_gopro_status.h"
 
