@@ -25,12 +25,6 @@
 #include "cms/cms_types.h"
 #include "osd/osd_gopro_status.h"
 
-#define GOPRO_SETTING_RECORD_ID 8
-#define GOPRO_SETTING_RESOLUTION_ID 2
-#define GOPRO_SETTING_FPS_ID 3
-#define GOPRO_SETTING_LENS_ID 121
-#define GOPRO_SETTING_HYPERSMOOTH_ID 135
-
 static const char * const goproRecordLabels[] = {
     "STOP", "START"
 };

@@ -42,6 +42,14 @@
 #define GOPRO_COMMAND_CONNECT 0
 #define GOPRO_MENU_ENTRY_COUNT (4 + GOPRO_SETTING_COUNT + 2)
 
+
+#define GOPRO_SETTING_RECORD_ID 8
+#define GOPRO_SETTING_RESOLUTION_ID 2
+#define GOPRO_SETTING_FPS_ID 3
+#define GOPRO_SETTING_LENS_ID 121
+#define GOPRO_SETTING_HYPERSMOOTH_ID 135
+
+
 // Dynamic status text for the menu entries that display battery and link state.
 static char goproStatusBatteryText[GOPRO_STATUS_BATTERY_TEXT_SIZE];
 static char goproStatusLinkText[GOPRO_STATUS_LINK_TEXT_SIZE];
