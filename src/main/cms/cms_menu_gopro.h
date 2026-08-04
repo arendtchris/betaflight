@@ -20,6 +20,33 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include "cms/cms_types.h"
+
+typedef enum {
+    GOPRO_SETTING_RECORD,
+    GOPRO_SETTING_RESOLUTION,
+    GOPRO_SETTING_FPS,
+    GOPRO_SETTING_LENS,
+    GOPRO_SETTING_HYPERSMOOTH,
+    GOPRO_SETTING_COUNT
+} goproCmsSettingId_e;
+
+typedef struct {
+    goproCmsSettingId_e settingId;
+    uint16_t commandId;
+    uint8_t defaultIndex;
+    uint8_t currentIndex;
+    OSD_TAB_t tab;
+
+    CMSEntryFuncPtr callback;
+    const char *displayLabel;
+    const char * const *labels;
+    const uint16_t *values;
+    uint8_t optionCount;
+} goproCmsSettingTable_t;
+
+const void *cmsx_menuGoproSendSetting(goproCmsSettingId_e settingId);
 
 extern CMS_Menu cmsx_menuGopro;

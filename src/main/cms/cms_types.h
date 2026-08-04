@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "drivers/display.h"
+
 //type of elements
 
 typedef enum
