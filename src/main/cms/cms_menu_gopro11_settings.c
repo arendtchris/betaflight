@@ -76,7 +76,7 @@ static goproCmsSettingTable_t goproSettings[] = {
             .max = ARRAYLEN(goproRecordValues) - 1,
             .names = goproRecordLabels,
         },
-        .callback = cmsMenuGoproRecordCallback,
+        .callback = cmsMenuGopro11RecordCallback,
         .displayLabel = "RECORD",
         .labels = goproRecordLabels,
         .values = goproRecordValues,
@@ -91,7 +91,7 @@ static goproCmsSettingTable_t goproSettings[] = {
             .max = ARRAYLEN(goproResolutionValues) - 1,
             .names = goproResolutionLabels,
         },
-        .callback = cmsMenuGoproResolutionCallback,
+        .callback = cmsMenuGopro11ResolutionCallback,
         .displayLabel = "RESOLUTION",
         .labels = goproResolutionLabels,
         .values = goproResolutionValues,
@@ -106,7 +106,7 @@ static goproCmsSettingTable_t goproSettings[] = {
             .max = ARRAYLEN(goproFpsValues) - 1,
             .names = goproFpsLabels,
         },
-        .callback = cmsMenuGoproFpsCallback,
+        .callback = cmsMenuGopro11FpsCallback,
         .displayLabel = "FPS",
         .labels = goproFpsLabels,
         .values = goproFpsValues,
@@ -121,7 +121,7 @@ static goproCmsSettingTable_t goproSettings[] = {
             .max = ARRAYLEN(goproLensValues) - 1,
             .names = goproLensLabels,
         },
-        .callback = cmsMenuGoproLensCallback,
+        .callback = cmsMenuGopro11LensCallback,
         .displayLabel = "LENS",
         .labels = goproLensLabels,
         .values = goproLensValues,
@@ -136,7 +136,7 @@ static goproCmsSettingTable_t goproSettings[] = {
             .max = ARRAYLEN(goproHypersmoothValues) - 1,
             .names = goproHypersmoothLabels,
         },
-        .callback = cmsMenuGoproHypersmoothCallback,
+        .callback = cmsMenuGopro11HypersmoothCallback,
         .displayLabel = "HYPERSMOOTH",
         .labels = goproHypersmoothLabels,
         .values = goproHypersmoothValues,
@@ -145,35 +145,35 @@ static goproCmsSettingTable_t goproSettings[] = {
 };
 
 // cms Callback functions for each GoPro setting, which send the selected value to the GoPro via the status port.
-const void *cmsMenuGoproRecordCallback(displayPort_t *pDisp, const void *self)
+const void *cmsMenuGopro11RecordCallback(displayPort_t *pDisp, const void *self)
 {
     UNUSED(pDisp);
     UNUSED(self);
     return cmsx_menuGoproSendSetting(GOPRO_SETTING_RECORD);
 }
 
-const void *cmsMenuGoproResolutionCallback(displayPort_t *pDisp, const void *self)
+const void *cmsMenuGopro11ResolutionCallback(displayPort_t *pDisp, const void *self)
 {
     UNUSED(pDisp);
     UNUSED(self);
     return cmsx_menuGoproSendSetting(GOPRO_SETTING_RESOLUTION);
 }
 
-const void *cmsMenuGoproFpsCallback(displayPort_t *pDisp, const void *self)
+const void *cmsMenuGopro11FpsCallback(displayPort_t *pDisp, const void *self)
 {
     UNUSED(pDisp);
     UNUSED(self);
     return cmsx_menuGoproSendSetting(GOPRO_SETTING_FPS);
 }
 
-const void *cmsMenuGoproLensCallback(displayPort_t *pDisp, const void *self)
+const void *cmsMenuGopro11LensCallback(displayPort_t *pDisp, const void *self)
 {
     UNUSED(pDisp);
     UNUSED(self);
     return cmsx_menuGoproSendSetting(GOPRO_SETTING_LENS);
 }
 
-const void *cmsMenuGoproHypersmoothCallback(displayPort_t *pDisp, const void *self)
+const void *cmsMenuGopro11HypersmoothCallback(displayPort_t *pDisp, const void *self)
 {
     UNUSED(pDisp);
     UNUSED(self);

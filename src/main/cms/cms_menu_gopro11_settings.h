@@ -26,8 +26,8 @@
 goproCmsSettingTable_t *cmsMenuGoproGetSettings(void);
 uint8_t cmsMenuGoproGetSettingsCount(void);
 goproCmsSettingTable_t *cmsMenuGoproGetSetting(goproCmsSettingId_e settingId);
-const void *cmsMenuGoproRecordCallback(displayPort_t *pDisp, const void *self);
-const void *cmsMenuGoproResolutionCallback(displayPort_t *pDisp, const void *self);
-const void *cmsMenuGoproFpsCallback(displayPort_t *pDisp, const void *self);
-const void *cmsMenuGoproLensCallback(displayPort_t *pDisp, const void *self);
-const void *cmsMenuGoproHypersmoothCallback(displayPort_t *pDisp, const void *self);
+const void *cmsMenuGopro11RecordCallback(displayPort_t *pDisp, const void *self);
+const void *cmsMenuGopro11ResolutionCallback(displayPort_t *pDisp, const void *self);
+const void *cmsMenuGopro11FpsCallback(displayPort_t *pDisp, const void *self);
+const void *cmsMenuGopro11LensCallback(displayPort_t *pDisp, const void *self);
+const void *cmsMenuGopro11HypersmoothCallback(displayPort_t *pDisp, const void *self);
