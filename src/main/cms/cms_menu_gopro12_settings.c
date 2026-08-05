@@ -21,66 +21,66 @@
 
 #if defined(USE_OSD) && defined(USE_CMS)
 
-#include "cms/cms_menu_gopro11_settings.h"
+#include "cms/cms_menu_gopro12_settings.h"
 #include "cms/cms_types.h"
 #include "osd/osd_gopro_status.h"
 
-static const char * const goproRecordLabels[] = {
+static const char * const gopro12RecordLabels[] = {
     "STOP", "START"
 };
 
-static const uint16_t goproRecordValues[] = {
+static const uint16_t gopro12RecordValues[] = {
     0, 1
 };
 
-static const char * const goproResolutionLabels[] = {
+static const char * const gopro12ResolutionLabels[] = {
     "5.3K", "5.3K 8:7", "5.3K 4:3", "4K", "4K 8:7", "4K 4:3", "2.7K", "2.7K 4:3", "1080"
 };
 
-static const uint16_t goproResolutionValues[] = {
+static const uint16_t gopro12ResolutionValues[] = {
     100, 26, 27, 1, 28, 18, 4, 6, 9
 };
 
-static const char * const goproFpsLabels[] = {
-    "240", "200", "120", "100", "60 ", "50 ", "30 ", "25 ", "24 "
+static const char * const gopro12FpsLabels[] = {
+    "240.0", "200.0", "120.0", "100.0", "60.0", "50.0", "30.0", "25.0", "24.0"
 };
 
-static const uint16_t goproFpsValues[] = {
+static const uint16_t gopro12FpsValues[] = {
     0, 13, 1, 2, 5, 6, 8, 9, 10
 };
 
-static const char * const goproLensLabels[] = {
-    "WIDE", "SUPERVIEW", "LINEAR", "MAX SV", "LIN HL", "HYPERVIEW", "LIN LOCK"
+static const char * const gopro12LensLabels[] = {
+    "Wide", "Superview", "Linear", "Max SuperView", "Linear + Horizon Leveling", "HyperView", "Linear + Horizon Lock"
 };
 
-static const uint16_t goproLensValues[] = {
+static const uint16_t gopro12LensValues[] = {
     0, 3, 4, 7, 8, 9, 10
 };
 
-static const char * const goproHypersmoothLabels[] = {
-    "OFF", "LOW", "BOOST", "AUTO"
+static const char * const gopro12HypersmoothLabels[] = {
+    "Off", "Low", "Boost", "Auto Boost"
 };
 
-static const uint16_t goproHypersmoothValues[] = {
+static const uint16_t gopro12HypersmoothValues[] = {
     0, 1, 3, 4
 };
 
 // Shared GoPro CMS settings table for the menu entries.
-static  goproCmsSettingTable_t goproSettings[] = {
+static goproCmsSettingTable_t gopro12Settings[] = {
     {
         .settingId = GOPRO_SETTING_RECORD,
         .commandId = GOPRO_SETTING_RECORD_ID,
         .defaultIndex = 0,
         .currentIndex = 0,
         .tab = {
-            .max = ARRAYLEN(goproRecordValues) - 1,
-            .names = goproRecordLabels,
+            .max = ARRAYLEN(gopro12RecordValues) - 1,
+            .names = gopro12RecordLabels,
         },
         .callback = NULL,
         .displayLabel = "RECORD",
-        .labels = goproRecordLabels,
-        .values = goproRecordValues,
-        .optionCount = (uint8_t)ARRAYLEN(goproRecordValues)
+        .labels = gopro12RecordLabels,
+        .values = gopro12RecordValues,
+        .optionCount = (uint8_t)ARRAYLEN(gopro12RecordValues)
     },
     {
         .settingId = GOPRO_SETTING_RESOLUTION,
@@ -88,14 +88,14 @@ static  goproCmsSettingTable_t goproSettings[] = {
         .defaultIndex = 2,
         .currentIndex = 2,
         .tab = {
-            .max = ARRAYLEN(goproResolutionValues) - 1,
-            .names = goproResolutionLabels,
+            .max = ARRAYLEN(gopro12ResolutionValues) - 1,
+            .names = gopro12ResolutionLabels,
         },
         .callback = NULL,
         .displayLabel = "RESOLUTION",
-        .labels = goproResolutionLabels,
-        .values = goproResolutionValues,
-        .optionCount = (uint8_t)ARRAYLEN(goproResolutionValues)
+        .labels = gopro12ResolutionLabels,
+        .values = gopro12ResolutionValues,
+        .optionCount = (uint8_t)ARRAYLEN(gopro12ResolutionValues)
     },
     {
         .settingId = GOPRO_SETTING_FPS,
@@ -103,14 +103,14 @@ static  goproCmsSettingTable_t goproSettings[] = {
         .defaultIndex = 4,
         .currentIndex = 4,
         .tab = {
-            .max = ARRAYLEN(goproFpsValues) - 1,
-            .names = goproFpsLabels,
+            .max = ARRAYLEN(gopro12FpsValues) - 1,
+            .names = gopro12FpsLabels,
         },
         .callback = NULL,
         .displayLabel = "FPS",
-        .labels = goproFpsLabels,
-        .values = goproFpsValues,
-        .optionCount = (uint8_t)ARRAYLEN(goproFpsValues)
+        .labels = gopro12FpsLabels,
+        .values = gopro12FpsValues,
+        .optionCount = (uint8_t)ARRAYLEN(gopro12FpsValues)
     },
     {
         .settingId = GOPRO_SETTING_LENS,
@@ -118,14 +118,14 @@ static  goproCmsSettingTable_t goproSettings[] = {
         .defaultIndex = 1,
         .currentIndex = 1,
         .tab = {
-            .max = ARRAYLEN(goproLensValues) - 1,
-            .names = goproLensLabels,
+            .max = ARRAYLEN(gopro12LensValues) - 1,
+            .names = gopro12LensLabels,
         },
         .callback = NULL,
         .displayLabel = "LENS",
-        .labels = goproLensLabels,
-        .values = goproLensValues,
-        .optionCount = (uint8_t)ARRAYLEN(goproLensValues)
+        .labels = gopro12LensLabels,
+        .values = gopro12LensValues,
+        .optionCount = (uint8_t)ARRAYLEN(gopro12LensValues)
     },
     {
         .settingId = GOPRO_SETTING_HYPERSMOOTH,
@@ -133,35 +133,35 @@ static  goproCmsSettingTable_t goproSettings[] = {
         .defaultIndex = 0,
         .currentIndex = 0,
         .tab = {
-            .max = ARRAYLEN(goproHypersmoothValues) - 1,
-            .names = goproHypersmoothLabels,
+            .max = ARRAYLEN(gopro12HypersmoothValues) - 1,
+            .names = gopro12HypersmoothLabels,
         },
         .callback = NULL,
         .displayLabel = "HYPERSMOOTH",
-        .labels = goproHypersmoothLabels,
-        .values = goproHypersmoothValues,
-        .optionCount = (uint8_t)ARRAYLEN(goproHypersmoothValues)
+        .labels = gopro12HypersmoothLabels,
+        .values = gopro12HypersmoothValues,
+        .optionCount = (uint8_t)ARRAYLEN(gopro12HypersmoothValues)
     }
 };
 
 // Returns the shared GoPro settings table used by the CMS menu.
-goproCmsSettingTable_t *cmsMenuGoproGetSettings(void)
+goproCmsSettingTable_t *cmsMenuGopro12GetSettings(void)
 {
-    return goproSettings;
+    return gopro12Settings;
 }
 
 // Returns the number of GoPro settings entries in the shared table.
-uint8_t cmsMenuGoproGetSettingsCount(void)
+uint8_t cmsMenuGopro12GetSettingsCount(void)
 {
-    return (uint8_t)ARRAYLEN(goproSettings);
+    return (uint8_t)ARRAYLEN(gopro12Settings);
 }
 
 // Looks up a single GoPro setting by its identifier.
-goproCmsSettingTable_t *cmsMenuGoproGetSetting(goproCmsSettingId_e settingId)
+goproCmsSettingTable_t *cmsMenuGopro12GetSetting(goproCmsSettingId_e settingId)
 {
-    for (uint8_t index = 0; index < ARRAYLEN(goproSettings); index++) {
-        if (goproSettings[index].settingId == settingId) {
-            return &goproSettings[index];
+    for (uint8_t index = 0; index < ARRAYLEN(gopro12Settings); index++) {
+        if (gopro12Settings[index].settingId == settingId) {
+            return &gopro12Settings[index];
         }
     }
 

@@ -34,6 +34,10 @@
 #include "cms/cms_menu_gopro11_settings.h"
 #include "osd/osd_gopro_status.h"
 
+#ifndef container_of
+#define container_of(ptr, type, member) ((type *)((char *)(ptr) - offsetof(type, member)))
+#endif
+
 // Buffer sizes for the dynamic status text shown in the GoPro CMS menu.
 #define GOPRO_STATUS_BATTERY_TEXT_SIZE 8
 #define GOPRO_STATUS_LINK_TEXT_SIZE 16
@@ -43,21 +47,19 @@
 #define GOPRO_MENU_ENTRY_COUNT (4 + GOPRO_SETTING_COUNT + 2)
 
 
-#define GOPRO_SETTING_RECORD_ID 8
-#define GOPRO_SETTING_RESOLUTION_ID 2
-#define GOPRO_SETTING_FPS_ID 3
-#define GOPRO_SETTING_LENS_ID 121
-#define GOPRO_SETTING_HYPERSMOOTH_ID 135
+
 
 
 // Dynamic status text for the menu entries that display battery and link state.
 static char goproStatusBatteryText[GOPRO_STATUS_BATTERY_TEXT_SIZE];
 static char goproStatusLinkText[GOPRO_STATUS_LINK_TEXT_SIZE];
-
 static OSD_Entry cmsx_menuGoproEntries[GOPRO_MENU_ENTRY_COUNT];
+
 static void cmsx_menuGoproRefreshStatus(void);
 static void cmsx_menuGoproUpdateTabData(goproCmsSettingTable_t *setting);
 static void cmsx_menuGoproInitEntries(void);
+static const void *cmsx_menuGoproGenericCallback(displayPort_t *pDisp, const void *self);
+
 
 // Sends a raw GoPro command over the existing status/control UART link.
 static const void *cmsx_menuGoproSendCommand(uint16_t optionId,  uint16_t settingId)
@@ -80,6 +82,28 @@ static const void *cmsx_menuGoproSendIndexedSetting(goproCmsSettingTable_t *sett
     osdGoproStatusSendCommand(setting->values[setting->currentIndex], setting->commandId);
 
     return NULL;
+}
+
+static goproCmsSettingTable_t *cmsx_menuGoproFindSettingByTab(const OSD_TAB_t *tab)
+{
+    if (!tab) {
+        return NULL;
+    }
+
+    return container_of(tab, goproCmsSettingTable_t, tab);
+}
+
+static const void *cmsx_menuGoproGenericCallback(displayPort_t *pDisp, const void *self)
+{
+    UNUSED(pDisp);
+
+    goproCmsSettingTable_t *setting = cmsx_menuGoproFindSettingByTab((const OSD_TAB_t *)self);
+
+    if (!setting) {
+        return NULL;
+    }
+
+    return cmsx_menuGoproSendIndexedSetting(setting);
 }
 
 // Resolves a setting by ID and forwards it to the shared send helper.
@@ -162,7 +186,7 @@ static void cmsx_menuGoproInitEntries(void)
 
         cmsx_menuGoproEntries[entryIndex].text = setting->displayLabel;
         cmsx_menuGoproEntries[entryIndex].flags = OME_TAB;
-        cmsx_menuGoproEntries[entryIndex].func = setting->callback;
+        cmsx_menuGoproEntries[entryIndex].func = cmsx_menuGoproGenericCallback;
         cmsx_menuGoproEntries[entryIndex].data = &setting->tab;
     }
 
@@ -225,7 +249,6 @@ static const void *cmsx_menuGoproStatusOnDisplayUpdate(displayPort_t *pDisp, con
     return NULL;
 }
 
-static OSD_Entry cmsx_menuGoproEntries[GOPRO_MENU_ENTRY_COUNT];
 
 CMS_Menu cmsx_menuGopro = {
 #ifdef CMS_MENU_DEBUG

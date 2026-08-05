@@ -23,6 +23,12 @@
 
 #include "cms/cms_menu_gopro.h"
 
-goproCmsSettingTable_t *cmsMenuGoproGetSettings(void);
-uint8_t cmsMenuGoproGetSettingsCount(void);
-goproCmsSettingTable_t *cmsMenuGoproGetSetting(goproCmsSettingId_e settingId);
+#define GOPRO_SETTING_RECORD_ID 8
+#define GOPRO_SETTING_RESOLUTION_ID 2
+#define GOPRO_SETTING_FPS_ID 3
+#define GOPRO_SETTING_LENS_ID 121
+#define GOPRO_SETTING_HYPERSMOOTH_ID 135
+
+goproCmsSettingTable_t *cmsMenuGopro12GetSettings(void);
+uint8_t cmsMenuGopro12GetSettingsCount(void);
+goproCmsSettingTable_t *cmsMenuGopro12GetSetting(goproCmsSettingId_e settingId);
