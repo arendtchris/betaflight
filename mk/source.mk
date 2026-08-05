@@ -231,8 +231,15 @@ COMMON_SRC = \
             cms/cms_menu_firmware.c \
             cms/cms_menu_gopro.c \
             gopro/gopro_camera.c \
+            gopro/gopro_camera_hero7.c \
+            gopro/gopro_camera_hero8.c \
+            gopro/gopro_camera_hero9.c \
+            gopro/gopro_camera_hero10.c \
             gopro/gopro_camera_hero11.c \
             gopro/gopro_camera_hero12.c \
+            gopro/gopro_camera_hero13.c \
+            gopro/gopro_camera_mission1.c \
+            gopro/gopro_camera_session5.c \
             cms/cms_menu_gps_rescue_multirotor.c \
             cms/cms_menu_gps_rescue_wing.c \
             cms/cms_menu_gps_lap_timer.c \

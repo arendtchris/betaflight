@@ -33,6 +33,12 @@ static const char * const hero12LensLabels[] = { "Wide", "Superview", "Linear", 
 static const uint16_t hero12LensValues[] = { 0, 3, 4, 7, 8, 9, 10 };
 static const char * const hero12HypersmoothLabels[] = { "Off", "Low", "Boost", "Auto Boost" };
 static const uint16_t hero12HypersmoothValues[] = { 0, 1, 3, 4 };
+static const char * const hero12BitDepthLabels[] = { "8-Bit", "10-Bit" };
+static const uint16_t hero12BitDepthValues[] = { 0, 2 };
+static const char * const hero12EasyModeLabels[] = { "Highest Quality", "Standard Quality", "Basic Quality", "Standard Video", "HDR Video" };
+static const uint16_t hero12EasyModeValues[] = { 0, 1, 2, 3, 4 };
+static const char * const hero12LapseModeLabels[] = { "TimeWarp", "Star Trails", "Light Painting", "Vehicle Lights", "Max TimeWarp", "Max Star Trails", "Max Light Painting", "Max Vehicle Lights", "Time Lapse Video", "Night Lapse Video" };
+static const uint16_t hero12LapseModeValues[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 static goproCmsSettingTable_t hero12Settings[] = {
     {
@@ -94,6 +100,42 @@ static goproCmsSettingTable_t hero12Settings[] = {
         .labels = hero12HypersmoothLabels,
         .values = hero12HypersmoothValues,
         .optionCount = (uint8_t)ARRAYLEN(hero12HypersmoothValues)
+    },
+    {
+        .settingId = GOPRO_SETTING_BIT_DEPTH,
+        .commandId = GOPRO_SETTING_BIT_DEPTH_ID,
+        .defaultIndex = 0,
+        .currentIndex = 0,
+        .tab = { .max = ARRAYLEN(hero12BitDepthValues) - 1, .names = hero12BitDepthLabels },
+        .callback = NULL,
+        .displayLabel = "BIT DEPTH",
+        .labels = hero12BitDepthLabels,
+        .values = hero12BitDepthValues,
+        .optionCount = (uint8_t)ARRAYLEN(hero12BitDepthValues)
+    },
+    {
+        .settingId = GOPRO_SETTING_HDR,
+        .commandId = GOPRO_SETTING_HDR_ID,
+        .defaultIndex = 0,
+        .currentIndex = 0,
+        .tab = { .max = ARRAYLEN(hero12EasyModeValues) - 1, .names = hero12EasyModeLabels },
+        .callback = NULL,
+        .displayLabel = "EASY MODE",
+        .labels = hero12EasyModeLabels,
+        .values = hero12EasyModeValues,
+        .optionCount = (uint8_t)ARRAYLEN(hero12EasyModeValues)
+    },
+    {
+        .settingId = GOPRO_SETTING_TIMELAPSE,
+        .commandId = GOPRO_SETTING_TIMELAPSE_ID,
+        .defaultIndex = 0,
+        .currentIndex = 0,
+        .tab = { .max = ARRAYLEN(hero12LapseModeValues) - 1, .names = hero12LapseModeLabels },
+        .callback = NULL,
+        .displayLabel = "LAPSE MODE",
+        .labels = hero12LapseModeLabels,
+        .values = hero12LapseModeValues,
+        .optionCount = (uint8_t)ARRAYLEN(hero12LapseModeValues)
     }
 };
 
