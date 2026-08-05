@@ -23,6 +23,20 @@
 
 #include "cms/cms_menu_gopro.h"
 
-goproCmsSettingTable_t *cmsMenuGoproGetSettings(void);
-uint8_t cmsMenuGoproGetSettingsCount(void);
-goproCmsSettingTable_t *cmsMenuGoproGetSetting(goproCmsSettingId_e settingId);
+typedef enum {
+    GOPRO_CAMERA_MODEL_UNKNOWN = 0,
+    GOPRO_CAMERA_MODEL_HERO11,
+    GOPRO_CAMERA_MODEL_HERO12,
+} goproCameraModel_e;
+
+typedef struct {
+    goproCameraModel_e model;
+    goproCmsSettingTable_t *settings;
+    uint8_t settingCount;
+} goproCamera_t;
+
+  
+void goproCameraSetModel(goproCameraModel_e model);
+const goproCamera_t *goproCameraGetCurrent(void);
+goproCameraModel_e goproCameraDetectModelFromStatus(const char *statusText);
+const goproCamera_t *goproCameraGetModelData(goproCameraModel_e model);

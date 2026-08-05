@@ -746,6 +746,17 @@ static void osdElementGoproBattery(osdElementParms_t *element)
     }
 }
 
+static void osdElementGoproName(osdElementParms_t *element)
+{
+    const char *nameValue = osdGoproStatusGetName();
+
+    if (nameValue && nameValue[0] != '\0') {
+        tfp_sprintf(element->buff, "CAM:NAME %s", nameValue);
+    } else {
+        strcpy(element->buff, "CAM:NAME --");
+    }
+}
+
 static void osdElementGoproRecording(osdElementParms_t *element)
 {
     const char *recordingValue = osdGoproStatusGetRecording();
@@ -2201,6 +2212,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_GOPRO_STATUS]            = osdElementGoproRemainingRecordingTime,
     [OSD_GOPRO_BATTERY]          = osdElementGoproBattery,
     [OSD_GOPRO_RECORDING]         = osdElementGoproRecording,
+    [OSD_GOPRO_CAMERA_NAME]       = osdElementGoproName,
 #endif
 };
 

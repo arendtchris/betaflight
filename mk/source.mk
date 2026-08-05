@@ -230,8 +230,9 @@ COMMON_SRC = \
             cms/cms_menu_failsafe.c \
             cms/cms_menu_firmware.c \
             cms/cms_menu_gopro.c \
-            cms/cms_menu_gopro11_settings.c \
-            cms/cms_menu_gopro12_settings.c \
+            gopro/gopro_camera.c \
+            gopro/gopro_camera_hero11.c \
+            gopro/gopro_camera_hero12.c \
             cms/cms_menu_gps_rescue_multirotor.c \
             cms/cms_menu_gps_rescue_wing.c \
             cms/cms_menu_gps_lap_timer.c \
@@ -524,8 +525,6 @@ SIZE_OPTIMISED_SRC += \
             cms/cms_menu_blackbox.c \
             cms/cms_menu_failsafe.c \
             cms/cms_menu_firmware.c \
-            cms/cms_menu_gopro11_settings.c \
-            cms/cms_menu_gopro12_settings.c \
             cms/cms_menu_gps_rescue_multirotor.c \
             cms/cms_menu_gps_rescue_wing.c \
             cms/cms_menu_gps_lap_timer.c \

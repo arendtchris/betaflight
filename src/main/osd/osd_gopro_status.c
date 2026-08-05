@@ -35,20 +35,19 @@
 #include "osd/osd.h"
 
 #define GOPRO_INPUT_BUFFER_SIZE 2048
-#define GOPRO_DISPLAY_BUFFER_SIZE 2048
-#define GOPRO_STATUS_VALUE_SIZE 8
-#define GOPRO_BATTERY_VALUE_SIZE 8
-#define GOPRO_RECORDING_VALUE_SIZE 16
-#define GOPRO_REMAINING_TIME_VALUE_SIZE 16
+
+#define GOPRO_SHORT_VALUE_SIZE 8
+#define GOPRO_BIG_VALUE_SIZE 16
 
 static serialPort_t *goproSerialPort = NULL;
 static char goproInputBuffer[GOPRO_INPUT_BUFFER_SIZE];
 static uint16_t goproInputPos = 0;
-static char goproDisplayBuffer[GOPRO_DISPLAY_BUFFER_SIZE];
-static char goproBatteryValue[GOPRO_BATTERY_VALUE_SIZE];
-static char goproStatusValue[GOPRO_STATUS_VALUE_SIZE];
-static char goproRecordingValue[GOPRO_RECORDING_VALUE_SIZE];
-static char goproRemainingTimeValue[GOPRO_REMAINING_TIME_VALUE_SIZE];
+static char goproDisplayBuffer[GOPRO_INPUT_BUFFER_SIZE];
+static char goproBatteryValue[GOPRO_SHORT_VALUE_SIZE];
+static char goproStatusValue[GOPRO_SHORT_VALUE_SIZE];
+static char goproRecordingValue[GOPRO_BIG_VALUE_SIZE];
+static char goproRemainingTimeValue[GOPRO_BIG_VALUE_SIZE];
+static char goproNameValue[GOPRO_BIG_VALUE_SIZE];
 
 /* Extract cached status fields from the latest GoPro status JSON line. */
 static void osdGoproStatusUpdateCaches(void)
@@ -60,6 +59,7 @@ static void osdGoproStatusUpdateCaches(void)
     goproBatteryValue[0] = '\0';
     goproRecordingValue[0] = '\0';
     goproRemainingTimeValue[0] = '\0';
+    goproNameValue[0] = '\0';
 
     if (!goproJsonExtractObjectRange(goproDisplayBuffer, "status", &statusStart, &statusEnd)) {
         return;
@@ -69,6 +69,7 @@ static void osdGoproStatusUpdateCaches(void)
     goproJsonExtractValue(statusStart, statusEnd, "8", goproRecordingValue, sizeof(goproRecordingValue));
     goproJsonExtractValue(statusStart, statusEnd, "1", goproStatusValue, sizeof(goproStatusValue));
     goproJsonExtractValue(statusStart, statusEnd, "35", goproRemainingTimeValue, sizeof(goproRemainingTimeValue));
+    goproJsonExtractValue(statusStart, statusEnd, "30", goproNameValue, sizeof(goproNameValue));
     
 }
 
@@ -120,6 +121,7 @@ bool osdGoproStatusInit(void)
     memset(goproBatteryValue, 0, sizeof(goproBatteryValue));
     memset(goproRecordingValue, 0, sizeof(goproRecordingValue));
     memset(goproRemainingTimeValue, 0, sizeof(goproRemainingTimeValue));
+    memset(goproNameValue, 0, sizeof(goproNameValue));
     goproInputPos = 0;
 
     return true;
@@ -139,7 +141,7 @@ void osdGoproStatusUpdate(timeUs_t currentTimeUs)
 
         if (c == '\n') {
             if (goproInputPos > 0) {
-                const uint16_t copyLen = (goproInputPos < (GOPRO_DISPLAY_BUFFER_SIZE - 1)) ? goproInputPos : (GOPRO_DISPLAY_BUFFER_SIZE - 1);
+                const uint16_t copyLen = (goproInputPos < (GOPRO_INPUT_BUFFER_SIZE - 1)) ? goproInputPos : (GOPRO_INPUT_BUFFER_SIZE - 1);
                 memcpy(goproDisplayBuffer, goproInputBuffer, copyLen);
                 goproDisplayBuffer[copyLen] = '\0';
             } else {
@@ -220,6 +222,12 @@ const char *osdGoproStatusGetRecording(void)
 const char *osdGoproStatusGetRemainingRecordingTime(void)
 {
     return goproRemainingTimeValue;
+}
+
+/* Return the cached camera name parsed from the latest status line. */
+const char *osdGoproStatusGetName(void)
+{
+    return goproNameValue;
 }
 
 #endif

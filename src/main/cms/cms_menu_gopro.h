@@ -54,5 +54,8 @@ typedef struct {
 } goproCmsSettingTable_t;
 
 const void *cmsx_menuGoproSendSetting(goproCmsSettingId_e settingId);
+void cmsx_menuGoproUpdateTabData(goproCmsSettingTable_t *setting);
+void cmsx_menuGoproInitEntries(void);
+const void *cmsx_menuGoproGenericCallback(displayPort_t *pDisp, const void *self);
 
 extern CMS_Menu cmsx_menuGopro;
