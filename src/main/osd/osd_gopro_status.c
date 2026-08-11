@@ -49,9 +49,13 @@ static char goproRecordingValue[GOPRO_BIG_VALUE_SIZE];
 static char goproRemainingTimeValue[GOPRO_BIG_VALUE_SIZE];
 static char goproNameValue[GOPRO_BIG_VALUE_SIZE];
 
+static char goproModelNameValue[GOPRO_BIG_VALUE_SIZE];
+
 /* Extract cached status fields from the latest GoPro status JSON line. */
 static void osdGoproStatusUpdateCaches(void)
 {
+    const char *hardwareStart;
+    const char *hardwareEnd;
     const char *statusStart;
     const char *statusEnd;
     
@@ -60,6 +64,11 @@ static void osdGoproStatusUpdateCaches(void)
     goproRecordingValue[0] = '\0';
     goproRemainingTimeValue[0] = '\0';
     goproNameValue[0] = '\0';
+    goproModelNameValue[0] = '\0';
+
+    if (goproJsonExtractObjectRange(goproDisplayBuffer, "hardware", &hardwareStart, &hardwareEnd)) {
+        goproJsonExtractValue(hardwareStart, hardwareEnd, "model_name", goproModelNameValue, sizeof(goproModelNameValue));
+    }
 
     if (!goproJsonExtractObjectRange(goproDisplayBuffer, "status", &statusStart, &statusEnd)) {
         return;
@@ -122,6 +131,7 @@ bool osdGoproStatusInit(void)
     memset(goproRecordingValue, 0, sizeof(goproRecordingValue));
     memset(goproRemainingTimeValue, 0, sizeof(goproRemainingTimeValue));
     memset(goproNameValue, 0, sizeof(goproNameValue));
+    memset(goproModelNameValue, 0, sizeof(goproModelNameValue));
     goproInputPos = 0;
 
     return true;
@@ -228,6 +238,12 @@ const char *osdGoproStatusGetRemainingRecordingTime(void)
 const char *osdGoproStatusGetName(void)
 {
     return goproNameValue;
+}
+
+/* Return the cached camera model parsed from hardware.model_name. */
+const char *osdGoproStatusGetModelName(void)
+{
+    return goproModelNameValue;
 }
 
 #endif

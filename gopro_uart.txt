@@ -6,11 +6,19 @@ set osd_gopro_battery_pos = 2062
 set osd_gopro_remaining_time_pos = 2444
 set osd_gopro_aux_channel = 2
 
-# Gopro11 Mini
+# HERO5 Session  
+#set gopro_ssid=GP55153755
+#set gopro_pass=share4620
+
+# HERO7 Black
+#set gopro_ssid=GP24744372
+#set gopro_pass=xYf-3c9-Kw8
+
+# HERO11 Black Mini
 #set gopro_ssid=GP24741864
 #set gopro_pass=DPX-ykH-S9y
 
-# Gopro11
+# HERO11 Black
 set gopro_ssid=GoProhero11
 set gopro_pass=fj5-8qB-pny
 

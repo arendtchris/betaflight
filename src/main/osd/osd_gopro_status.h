@@ -32,4 +32,5 @@ const char *osdGoproStatusGetBattery(void);
 const char *osdGoproStatusGetRecording(void);
 const char *osdGoproStatusGetRemainingRecordingTime(void);
 const char *osdGoproStatusGetName(void);
+const char *osdGoproStatusGetModelName(void);
 bool osdGoproStatusSendCommand(uint16_t optionId,  uint16_t settingId);

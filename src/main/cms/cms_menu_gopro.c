@@ -53,7 +53,7 @@
 // Dynamic status text for the menu entries that display battery, link, and name state.
 static char goproStatusBatteryText[GOPRO_STATUS_TEXT_SIZE];
 static char goproStatusLinkText[GOPRO_STATUS_TEXT_SIZE];
-static char goproStatusNameText[GOPRO_STATUS_TEXT_SIZE];
+static char goproStatusModelText[GOPRO_STATUS_TEXT_SIZE];
 
 static OSD_Entry cmsx_menuGoproEntries[GOPRO_MENU_ENTRY_COUNT];
 
@@ -152,7 +152,7 @@ static const void *cmsx_menuGoproOnEnter(displayPort_t *pDisp)
 {
     UNUSED(pDisp);
 
-    goproCameraModel_e model = goproCameraDetectModelFromStatus(osdGoproStatusGetName());
+    goproCameraModel_e model = goproCameraDetectModelFromStatus(osdGoproStatusGetModelName());
    
 
     const goproCamera_t *camera =  goproCameraGetModelData(model);
@@ -161,7 +161,7 @@ static const void *cmsx_menuGoproOnEnter(displayPort_t *pDisp)
     const uint8_t backEntryIndex = settingsStartIndex + settingCount;
     goproCmsSettingTable_t *settings = camera->settings;
 
-    cmsx_menuGoproEntries[0] = (OSD_Entry){" GOPRO", OME_Label | DYNAMIC, NULL, goproStatusNameText};
+    cmsx_menuGoproEntries[0] = (OSD_Entry){" GOPRO", OME_Label | DYNAMIC, NULL, goproStatusModelText};
     cmsx_menuGoproEntries[1] = (OSD_Entry){" LINK", OME_Label | DYNAMIC, NULL, goproStatusLinkText};
     cmsx_menuGoproEntries[2] = (OSD_Entry){" BATTERY", OME_Label | DYNAMIC, NULL, goproStatusBatteryText};
  
@@ -212,7 +212,7 @@ static const void *cmsx_menuGoproStatusOnDisplayUpdate(displayPort_t *pDisp, con
 
     cmsx_menuGoproCopyStatusText(goproStatusBatteryText, sizeof(goproStatusBatteryText), osdGoproStatusGetBattery(), "--");
     cmsx_menuGoproCopyStatusText(goproStatusLinkText, sizeof(goproStatusLinkText), osdGoproStatusGetLink(), "OFFLINE");
-    cmsx_menuGoproCopyStatusText(goproStatusNameText, sizeof(goproStatusNameText), osdGoproStatusGetName(), "--");
+    cmsx_menuGoproCopyStatusText(goproStatusModelText, sizeof(goproStatusModelText), osdGoproStatusGetModelName(), "--");
 
     return NULL;
 }

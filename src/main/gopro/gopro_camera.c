@@ -21,9 +21,10 @@
 
 #if defined(USE_OSD) && defined(USE_CMS)
 
-#include <ctype.h>
 #include <string.h>
+#include <strings.h>
 
+#include "common/gopro_json.h"
 #include "gopro/gopro_camera.h"
 
 extern const goproCamera_t goproCameraHero8;
@@ -37,32 +38,6 @@ extern const goproCamera_t goproCameraHero7;
 extern const goproCamera_t goproCameraSession5;
 
 static const goproCamera_t *currentCamera = NULL;
-
-static bool goproCameraStatusContains(const char *statusText, const char *token)
-{
-    if (!statusText || !token) {
-        return false;
-    }
-
-    const char *cursor = statusText;
-    while (*cursor != '\0') {
-        const char *tokenCursor = token;
-        const char *candidate = cursor;
-
-        while (*candidate != '\0' && *tokenCursor != '\0' && (tolower((unsigned char)*candidate) == tolower((unsigned char)*tokenCursor))) {
-            ++candidate;
-            ++tokenCursor;
-        }
-
-        if (*tokenCursor == '\0') {
-            return true;
-        }
-
-        ++cursor;
-    }
-
-    return false;
-}
 
 const goproCamera_t *goproCameraGetModelData(goproCameraModel_e model)
 {
@@ -104,45 +79,49 @@ const goproCamera_t *goproCameraGetCurrent(void)
     return currentCamera;
 }
 
-goproCameraModel_e goproCameraDetectModelFromStatus(const char *statusText)
+goproCameraModel_e goproCameraDetectModelFromStatus(const char *goproModel)
 {
-    if (!statusText || !statusText[0]) {
+    
+    if (!goproModel || !goproModel[0]) {
         return GOPRO_CAMERA_MODEL_UNKNOWN;
     }
 
-    if (goproCameraStatusContains(statusText, "HERO8")) {
+    if (  strcasecmp(goproModel, "HERO8 Black") == 0) {
         return GOPRO_CAMERA_MODEL_HERO8;
     }
 
-    if (goproCameraStatusContains(statusText, "HERO7")) {
+    if (strcasecmp(goproModel, "HERO7 Black") == 0 ) {
         return GOPRO_CAMERA_MODEL_HERO7;
     }
 
-    if (goproCameraStatusContains(statusText, "HERO9")) {
+    if (strcasecmp(goproModel, "HERO9 Black") == 0) {
         return GOPRO_CAMERA_MODEL_HERO9;
     }
 
-    if (goproCameraStatusContains(statusText, "HERO10")) {
+    if (strcasecmp(goproModel, "HERO10 Black") == 0) { 
         return GOPRO_CAMERA_MODEL_HERO10;
     }
-
-    if (goproCameraStatusContains(statusText, "HERO11")) {
+    if (strcasecmp(goproModel, "HERO11 Black Mini") == 0) {
         return GOPRO_CAMERA_MODEL_HERO11;
     }
+    if (strcasecmp(goproModel, "HERO11 Black") == 0 ) {
+        return GOPRO_CAMERA_MODEL_HERO11;
+    }
+   
 
-    if (goproCameraStatusContains(statusText, "HERO12")) {
+    if (strcasecmp(goproModel, "HERO12 Black") == 0) {
         return GOPRO_CAMERA_MODEL_HERO12;
     }
 
-    if (goproCameraStatusContains(statusText, "HERO13")) {
+    if (strcasecmp(goproModel, "HERO13 Black") == 0) {
         return GOPRO_CAMERA_MODEL_HERO13;
     }
 
-    if (goproCameraStatusContains(statusText, "MISSION 1") || goproCameraStatusContains(statusText, "MISSION1")) {
+    if (strcasecmp(goproModel, "MISSION 1") == 0) {
         return GOPRO_CAMERA_MODEL_MISSION1;
     }
 
-    if (goproCameraStatusContains(statusText, "SESSION5") || goproCameraStatusContains(statusText, "SESSION 5")) {
+    if (strcasecmp(goproModel, "HERO5 Session") == 0) {
         return GOPRO_CAMERA_MODEL_SESSION5;
     }
 
