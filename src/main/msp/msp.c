@@ -113,6 +113,7 @@
 #include "msp/msp_protocol.h"
 #include "msp/msp_reboot.h"
 #include "msp/msp_protocol_v2_betaflight.h"
+#include "msp/msp_gopro.h"
 #include "msp/msp_protocol_v2_common.h"
 #include "msp/msp_serial.h"
 
@@ -4971,6 +4972,11 @@ RAM_CODE void mspFcProcessReply(mspPacket_t *reply)
     UNUSED(src); // potentially unused depending on compile options.
 
     switch (reply->cmd) {
+    case MSP2_GP_SETTINGS_REPORT:
+        goproMspProcessReply(reply);
+        break;
+    case MSP2_GP_SET_RESULT:
+        break;
     case MSP_ANALOG:
         {
             uint8_t batteryVoltage = sbufReadU8(src);

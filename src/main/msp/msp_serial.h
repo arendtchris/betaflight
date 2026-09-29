@@ -61,7 +61,7 @@
     (IMPLIED_MSP_RANGEFINDER_PORT_COUNT + IMPLIED_MSP_OPTICALFLOW_PORT_COUNT \
      + IMPLIED_MSP_OSD_PORT_COUNT + IMPLIED_MSP_VTX_PORT_COUNT)
 
-#define MSP_PORT_COUNT (MAX_MSP_PORT_COUNT + IMPLIED_MSP_PORT_COUNT)
+#define MSP_PORT_COUNT (MAX_MSP_PORT_COUNT + IMPLIED_MSP_PORT_COUNT + 1)
 
 typedef enum {
     PORT_IDLE,
@@ -165,6 +165,6 @@ void mspSerialAllocatePorts(void);
 void mspSerialReleasePortIfAllocated(struct serialPort_s *serialPort);
 void mspSerialReleaseSharedTelemetryPorts(void);
 mspDescriptor_t getMspSerialPortDescriptor(const serialPortIdentifier_e portIdentifier);
-int mspSerialPush(serialPortIdentifier_e port, uint8_t cmd, uint8_t *data, int datalen, mspDirection_e direction, mspVersion_e mspVersion);
+int mspSerialPush(serialPortIdentifier_e port, uint16_t cmd, uint8_t *data, int datalen, mspDirection_e direction, mspVersion_e mspVersion);
 uint32_t mspSerialTxBytesFree(void);
 bool mspSerialIsConfiguratorActive(void);

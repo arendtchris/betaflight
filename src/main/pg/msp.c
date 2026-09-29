@@ -27,7 +27,7 @@
 
 #include "msp.h"
 
-PG_REGISTER_WITH_RESET_FN(mspConfig_t, mspConfig, PG_MSP_CONFIG, 0);
+PG_REGISTER_WITH_RESET_FN(mspConfig_t, mspConfig, PG_MSP_CONFIG, 1);
 
 static void claimMspPort(mspConfig_t *mspConfig, unsigned *slot, serialPortIdentifier_e identifier)
 {
@@ -54,6 +54,8 @@ void pgResetFn_mspConfig(mspConfig_t *mspConfig)
         mspConfig->msp_uart[i] = SERIAL_PORT_NONE;
         mspConfig->msp_baud[i] = BAUD_115200;
     }
+    mspConfig->gopro_msp_uart = SERIAL_PORT_NONE;
+    mspConfig->gopro_msp_baud = BAUD_115200;
 
     // The first port is always MSP so a freshly flashed board stays reachable.
     unsigned slot = 0;

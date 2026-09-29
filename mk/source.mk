@@ -148,6 +148,7 @@ COMMON_SRC = \
             msp/msp_box.c \
             msp/msp_build_info.c \
             msp/msp_serial.c \
+            msp/msp_gopro.c \
             scheduler/scheduler.c \
             sensors/adcinternal.c \
             sensors/battery.c \
@@ -235,6 +236,7 @@ COMMON_SRC = \
             cms/cms_menu_blackbox.c \
             cms/cms_menu_failsafe.c \
             cms/cms_menu_firmware.c \
+            cms/cms_menu_gopro.c \
             cms/cms_menu_gps_rescue_multirotor.c \
             cms/cms_menu_gps_rescue_wing.c \
             cms/cms_menu_gps_lap_timer.c \

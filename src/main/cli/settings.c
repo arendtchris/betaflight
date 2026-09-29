@@ -2065,6 +2065,8 @@ const clivalue_t valueTable[] = {
     { "msp_3_uart", VAR_INT8   | MASTER_VALUE | MODE_LOOKUP_IDENTIFIER, .config.identifier = { IDENTIFIER_LOOKUP_SERIAL_PORT }, PG_MSP_CONFIG, offsetof(mspConfig_t, msp_uart[2]) },
     { "msp_3_baud", VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_BAUD_RATE }, PG_MSP_CONFIG, offsetof(mspConfig_t, msp_baud[2]) },
 #endif
+    { "gopro_msp_uart", VAR_INT8   | MASTER_VALUE | MODE_LOOKUP_IDENTIFIER, .config.identifier = { IDENTIFIER_LOOKUP_SERIAL_PORT }, PG_MSP_CONFIG, offsetof(mspConfig_t, gopro_msp_uart) },
+    { "gopro_msp_baud", VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_BAUD_RATE }, PG_MSP_CONFIG, offsetof(mspConfig_t, gopro_msp_baud) },
 
 // PG_TIMECONFIG
 #ifdef USE_RTC_TIME

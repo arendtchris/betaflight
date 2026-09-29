@@ -157,6 +157,9 @@ uint32_t serialSynthesizeFunctionMask(serialPortIdentifier_e identifier)
             break;
         }
     }
+    if (mspConfig()->gopro_msp_uart == identifier) {
+        mask |= FUNCTION_GOPRO_MSP;
+    }
 
 #ifdef USE_GPS
     if (gpsConfig()->gps_uart == identifier) {
@@ -251,6 +254,9 @@ unsigned serialGetPortClaims(serialPortIdentifier_e identifier, serialPortClaim_
         if (mspConfig()->msp_uart[i] == identifier) {
             ADD_CLAIM(mspClaimNames[i], mspClaimSettings[i], NULL, mspClaimBaudSettings[i], FUNCTION_MSP);
         }
+    }
+    if (mspConfig()->gopro_msp_uart == identifier) {
+        ADD_CLAIM("gopro_msp", "gopro_msp_uart", NULL, "gopro_msp_baud", FUNCTION_GOPRO_MSP);
     }
 
 #ifdef USE_GPS
@@ -354,6 +360,9 @@ static void clearClaimsOnPort(serialPortIdentifier_e identifier, bool keepMsp)
                 mspConfigMutable()->msp_uart[i] = SERIAL_PORT_NONE;
             }
         }
+    }
+    if (mspConfig()->gopro_msp_uart == identifier) {
+        mspConfigMutable()->gopro_msp_uart = SERIAL_PORT_NONE;
     }
 #ifdef USE_GPS
     if (gpsConfig()->gps_uart == identifier) {
@@ -533,6 +542,9 @@ bool serialApplyFunctionMask(serialPortIdentifier_e identifier, uint32_t mask)
             }
         }
     }
+    if (mask & FUNCTION_GOPRO_MSP) {
+        mspConfigMutable()->gopro_msp_uart = identifier;
+    }
 #ifdef USE_GPS
     if (mask & FUNCTION_GPS) {
         gpsConfigMutable()->gps_uart = identifier;
@@ -637,6 +649,9 @@ void serialApplyPortBaud(serialPortIdentifier_e identifier, serialBaudClass_e ba
             if (mspConfig()->msp_uart[i] == identifier) {
                 mspConfigMutable()->msp_baud[i] = baudIndex;
             }
+        }
+        if (mspConfig()->gopro_msp_uart == identifier) {
+            mspConfigMutable()->gopro_msp_baud = baudIndex;
         }
         break;
 
@@ -755,6 +770,9 @@ uint8_t serialSynthesizePortBaud(serialPortIdentifier_e identifier, serialBaudCl
             if (mspConfig()->msp_uart[i] == identifier) {
                 return mspConfig()->msp_baud[i];
             }
+        }
+        if (mspConfig()->gopro_msp_uart == identifier) {
+            return mspConfig()->gopro_msp_baud;
         }
         break;
 
