@@ -11,9 +11,9 @@ save
 
 Replace `UART2` with the UART name shown by the `serial` command for your flight controller. `gopro_msp_uart` defaults to `NONE` (disabled); `gopro_msp_baud` defaults to `115200`. The baud rate must match the ESP32. GoPro MSP may share a UART assigned to regular MSP because both use the same parser; in that case, the MSP and GoPro baud rates must match. Do not assign RX, GPS, or another non-MSP function to the GoPro UART.
 
-The Betaflight Configurator Ports tab does not currently expose `GOPRO_MSP` or configure `gopro_msp_uart`. Configure this role through the CLI above. The legacy MSP serial-config write commands are not supported by this firmware's feature-based port configuration.
+The Configurator exposes the GoPro MSP port and baud rate in the Ports tab. Saving a port or baud change requires a reboot. The legacy MSP serial-config write commands are not supported by this firmware's feature-based port configuration.
 
-The menu is available under **Features > GOPRO**. It currently exposes resolution and frame rate. On menu entry, Betaflight requests both current settings from the ESP32; changing a tab sends the selected value.
+The OSD menu is available under **Features > GOPRO** and exposes resolution and frame rate. The Configurator's OSD tab exposes the same settings when a GoPro MSP port is assigned. Betaflight proxies Configurator requests to the ESP32 and returns the latest cached value and revision; after setting a value, the Configurator polls until the ESP32 reports the new value.
 
 ## MSP2 Messages
 
@@ -25,6 +25,8 @@ The values below are GoPro BLE setting IDs and option bytes. Each field is one b
 | `MSP2_GP_SET_RESULT` | `0x4002` | Response to SET; payload is not currently interpreted by Betaflight |
 | `MSP2_GP_GET_SETTINGS` | `0x4003` | Request: `[settingId]` |
 | `MSP2_GP_SETTINGS_REPORT` | `0x4004` | Response: `[settingId, value]` |
+
+For Configurator requests to the flight controller, `MSP2_GP_GET_SETTINGS` replies with `[settingId, valid, revision, value]`. The flight controller also forwards the request to the ESP32; `valid` is zero until a camera response has been received. `MSP2_GP_SET_SETTING` is acknowledged by the flight controller once forwarded, and the Configurator confirms the write by polling the cached value.
 
 Currently supported menu settings:
 

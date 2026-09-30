@@ -4929,7 +4929,28 @@ RAM_CODE mspResult_e mspFcProcessCommand(mspDescriptor_t srcDesc, mspPacket_t *c
     // initialize reply by default
     reply->cmd = cmd->cmd;
 
-    if (mspCommonProcessOutCommand(srcDesc, cmdMSP, dst, mspPostProcessFn)) {
+    if (cmdMSP == MSP2_GP_GET_SETTINGS) {
+        if (sbufBytesRemaining(src) != 1) {
+            ret = MSP_RESULT_ERROR;
+        } else {
+            const uint8_t settingId = sbufReadU8(src);
+            uint8_t value = 0;
+            const bool valid = goproMspGetSetting(settingId, &value);
+            goproMspSendGetSetting(settingId);
+            sbufWriteU8(dst, settingId);
+            sbufWriteU8(dst, valid ? 1 : 0);
+            sbufWriteU8(dst, goproMspGetSettingRevision(settingId));
+            sbufWriteU8(dst, value);
+        }
+    } else if (cmdMSP == MSP2_GP_SET_SETTING) {
+        if (sbufBytesRemaining(src) != 2) {
+            ret = MSP_RESULT_ERROR;
+        } else {
+            const uint8_t settingId = sbufReadU8(src);
+            const uint8_t value = sbufReadU8(src);
+            ret = goproMspSendSetSetting(settingId, value) ? MSP_RESULT_ACK : MSP_RESULT_ERROR;
+        }
+    } else if (mspCommonProcessOutCommand(srcDesc, cmdMSP, dst, mspPostProcessFn)) {
         ret = MSP_RESULT_ACK;
     } else if (mspProcessOutCommand(srcDesc, cmdMSP, dst)) {
         ret = MSP_RESULT_ACK;
