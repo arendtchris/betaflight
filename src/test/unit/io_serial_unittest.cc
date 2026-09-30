@@ -151,6 +151,10 @@ TEST(IoSerialTest, TestFunctionsConflict)
     setStubbedFunctionMask(SERIAL_PORT_UART1, FUNCTION_MSP | FUNCTION_LIDAR);
     EXPECT_FALSE(serialPortFunctionsConflict(SERIAL_PORT_UART1));
 
+    // GoPro MSP uses the same parser instance as the regular MSP port.
+    setStubbedFunctionMask(SERIAL_PORT_UART1, FUNCTION_MSP | FUNCTION_GOPRO_MSP);
+    EXPECT_FALSE(serialPortFunctionsConflict(SERIAL_PORT_UART1));
+
     // MSP cannot share with serial RX
     setStubbedFunctionMask(SERIAL_PORT_UART1, FUNCTION_MSP | FUNCTION_RX_SERIAL);
     EXPECT_TRUE(serialPortFunctionsConflict(SERIAL_PORT_UART1));
@@ -160,6 +164,10 @@ TEST(IoSerialTest, TestFunctionsConflict)
     EXPECT_TRUE(serialPortFunctionsConflict(SERIAL_PORT_UART1));
 
     setStubbedFunctionMask(SERIAL_PORT_UART1, FUNCTION_MSP | FUNCTION_LIDAR | FUNCTION_GPS);
+    EXPECT_TRUE(serialPortFunctionsConflict(SERIAL_PORT_UART1));
+
+    // GoPro MSP alone cannot share a UART with unrelated serial functions.
+    setStubbedFunctionMask(SERIAL_PORT_UART1, FUNCTION_GOPRO_MSP | FUNCTION_GPS);
     EXPECT_TRUE(serialPortFunctionsConflict(SERIAL_PORT_UART1));
 
     memset(stubbedFunctionMask, 0, sizeof(stubbedFunctionMask));

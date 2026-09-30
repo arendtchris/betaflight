@@ -27,7 +27,7 @@
 
 #include "msp.h"
 
-PG_REGISTER_WITH_RESET_FN(mspConfig_t, mspConfig, PG_MSP_CONFIG, 1);
+PG_REGISTER_WITH_RESET_FN(mspConfig_t, mspConfig, PG_MSP_CONFIG, 0);
 
 static void claimMspPort(mspConfig_t *mspConfig, unsigned *slot, serialPortIdentifier_e identifier)
 {

@@ -417,6 +417,7 @@ serialPort_t *findSharedSerialPort(uint16_t functionMask, serialPortFunction_e s
 
 /*
  * rules:
+ * - MSP can be shared with GoPro MSP because both use the same parser instance.
  * - MSP is allowed to be shared with EITHER any telemetry OR blackbox.
  *   (using either / or, switching based on armed / disarmed or the AUX channel configured for BOXTELEMETRY)
  * - serial RX and FrSky / LTM / MAVLink telemetry can be shared
@@ -450,7 +451,7 @@ bool serialPortFunctionsConflict(serialPortIdentifier_e identifier)
 
     if (bitCount > 1) {
         // shared
-        const uint32_t sharableWithMsp = FUNCTION_MSP | ALL_FUNCTIONS_SHARABLE_WITH_MSP;
+        const uint32_t sharableWithMsp = FUNCTION_MSP | FUNCTION_GOPRO_MSP | ALL_FUNCTIONS_SHARABLE_WITH_MSP;
 
         if ((functionMask & FUNCTION_MSP) && (functionMask & ~sharableWithMsp) == 0) {
             // MSP & telemetry
