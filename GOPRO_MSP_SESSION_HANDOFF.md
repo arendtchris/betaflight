@@ -5,36 +5,36 @@ Stand: 2026-09-30
 ## Aktueller Aufbau
 
 - Firmware-Repository: `/workspaces/betaflight`
-- Der Configurator ist ein eigenes Git-Repository, liegt aber derzeit noch unter `/workspaces/betaflight/betaflight-configurator`.
-- Der Benutzer verschiebt den Configurator manuell. Danach liegt er voraussichtlich neben dem Firmware-Repo unter `/workspaces/betaflight-configurator`.
-- Vor und nach dem Verschieben beide Git-Statusstände prüfen; `.git`, lokale Änderungen und installierte `node_modules` erhalten.
+- Der ESP32-Sketch liegt unter `/workspaces/betaflight/GoProBridgeBle`.
+- Der Configurator ist aktuell nicht unter `/workspaces` auffindbar. Der Benutzer hatte ihn manuell verschoben; vor Configurator-Arbeiten den tatsächlichen Workspace-Pfad erneut öffnen.
 
 ## Implementiert
 
 Firmware:
 - `src/main/msp/msp.c`: `MSP2_GP_GET_SETTINGS` liefert `[settingId, valid, revision, value]` aus dem FC-Cache und fragt parallel den ESP32 ab.
+- `src/main/msp/msp.c`, `src/main/msp/msp_gopro.c`: MSP `0x4005/0x4006` fragen Resolution-/FPS-Capabilities beim ESP32 ab und cachen die BLE-Optionsbytes.
+- `src/main/cms/cms_menu_gopro.c`: baut dynamische CMS-Tabs aus den Capability-Listen, mappt BLE-Bytes lokal auf Labels und fragt FPS-Capabilities nach Resolution-Wechsel erneut ab.
 - `MSP2_GP_SET_SETTING` wird an den ESP32 weitergeleitet und vom FC bestätigt, wenn das Senden gelingt.
 - `GOPRO_MSP.md` dokumentiert Ports-Tab, Antwortpayload und Bestätigung per Polling.
 
-Configurator:
-- `src/components/tabs/ports/PortsTilesView.vue`: GoPro-UART- und Baud-Auswahl im Ports-Tab, Konfliktbestätigung sowie Save & Reboot.
-- `src/components/tabs/OsdTab.vue`: GoPro-Port wird nur angezeigt; Auflösung und FPS bleiben im OSD-Tab.
-- `src/composables/useGoproSettings.js`: GET/SET, Antwortprüfung, Cache-Polling und Bestätigung gesetzter Werte.
-- `src/composables/ports/useFeaturePort.js`: nullable Baud-Refs typisiert.
-- `src/js/msp/MSPCodes.ts`, `locales/en/messages.json` und MSP-Tests ergänzt.
+ESP32-Bridge:
+- `GoProBridgeBle/src/Camera.cpp` speichert Capabilities aus GoPro Query `0x32` und stellt Werte/Revision bereit.
+- `GoProBridgeBle/src/Esp32CamBridge.cpp` startet die BLE-Capability-Abfrage.
+- `GoProBridgeBle/src/msp.cpp` sendet `0x4006` als MSP-Reply; `GoProBridgeBle/GoProBridgeBle.ino` korreliert asynchrone BLE-Antworten mit FC-Anfragen.
 
 ## Validierung
 
 - `make MATEKF722SE` erfolgreich.
-- `npm run typecheck` erfolgreich nach der letzten Typkorrektur.
-- Gezielte Vitest-Läufe: 22 Tests bestanden.
-- Der abschließende ESLint-/Diff-Check wurde nach einer Benutzerunterbrechung nicht abgeschlossen.
-- `npm ci` wurde ausgeführt; npm meldete 3 Audit-Funde. Node ist benutzerlokal in `~/.local/node-v24.21.0-linux-arm64` installiert (Node 24.21.0, npm 11.19.0). Für neue Shells diesen `bin`-Ordner in `PATH` aufnehmen.
-- Der lokale Vite-Server wurde beendet.
+- `make --directory=/workspaces/betaflight MAMBAF722` erfolgreich nach den Capability-/CMS-Änderungen.
+- `make --directory=/workspaces/betaflight/GoProBridgeBle PYTHON=python3 test` erfolgreich (Preset-Parser Hosttests).
+- `g++ -std=c++17 -Wall -Wextra -Isrc -Isrc/protobuf/generated -Inanopb -fsyntax-only src/Camera.cpp` erfolgreich.
+- `test-nanopb` ist blockiert, weil `GoProBridgeBle/tools/generate_nanopb.py` im Checkout fehlt.
+- Kein vollständiger Arduino/ESP32-Build: Arduino CLI/PlatformIO/ESP-IDF-Toolchain sind nicht im PATH.
+- Configurator-Typecheck/Vitest aus der früheren Arbeit bestanden, aber die verschobene Kopie ist aktuell nicht im Workspace auffindbar.
 
 ## Nächste Schritte
 
-1. Nach dem manuellen Verschieben beide Repositories prüfen.
-2. Im Configurator `npm run lint` und die gezielten MSP-Tests ausführen; danach `git diff --check` in beiden Repositories.
-3. Im Browser den Ports-Tab öffnen und UART 2/Baud ändern, speichern und nach dem Reboot kontrollieren. Konfliktbestätigung und GoPro-Controls im OSD-Tab prüfen.
-4. Die MSP-Bridge mit angeschlossenem ESP32 verifizieren, insbesondere Cache-Revision, ungültigen Cache und SET-Bestätigung.
+1. Configurator-Repo wieder im Workspace öffnen und dessen MSP-Code-Tabelle, Capability-Decoder sowie Optionslisten an `0x4005/0x4006` anbinden.
+2. Mit `git diff --check` und `make MAMBAF722` die Firmware-Änderungen abschließend prüfen.
+3. ESP32-Projekt mit seiner Arduino-Toolchain bauen, sobald diese verfügbar ist.
+4. Mit GoPro-Hardware testen, dass die BLE-Capability-Liste über MSP ankommt und sich FPS-Optionen nach einer Auflösungsänderung aktualisieren.

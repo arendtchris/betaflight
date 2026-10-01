@@ -39,8 +39,17 @@ typedef struct {
     bool valid;
 } goproMspSetting_t;
 
+typedef struct {
+    uint8_t values[GOPRO_MSP_MAX_SETTING_CAPABILITIES];
+    uint8_t count;
+    uint8_t revision;
+    bool valid;
+} goproMspCapabilities_t;
+
 static goproMspSetting_t resolutionSetting;
 static goproMspSetting_t fpsSetting;
+static goproMspCapabilities_t resolutionCapabilities;
+static goproMspCapabilities_t fpsCapabilities;
 
 static goproMspSetting_t *goproMspFindSetting(uint8_t settingId)
 {
@@ -49,6 +58,18 @@ static goproMspSetting_t *goproMspFindSetting(uint8_t settingId)
         return &resolutionSetting;
     case GOPRO_SETTING_FPS:
         return &fpsSetting;
+    default:
+        return NULL;
+    }
+}
+
+static goproMspCapabilities_t *goproMspFindCapabilities(uint8_t settingId)
+{
+    switch (settingId) {
+    case GOPRO_SETTING_RESOLUTION:
+        return &resolutionCapabilities;
+    case GOPRO_SETTING_FPS:
+        return &fpsCapabilities;
     default:
         return NULL;
     }
@@ -80,6 +101,11 @@ bool goproMspSendSetSetting(uint8_t settingId, uint8_t value)
     return goproMspSend(MSP2_GP_SET_SETTING, payload, sizeof(payload));
 }
 
+bool goproMspSendGetSettingCapabilities(uint8_t settingId)
+{
+    return goproMspSend(MSP2_GP_GET_SETTING_CAPABILITIES, &settingId, sizeof(settingId));
+}
+
 bool goproMspGetSetting(uint8_t settingId, uint8_t *value)
 {
     goproMspSetting_t *setting = goproMspFindSetting(settingId);
@@ -97,20 +123,62 @@ uint8_t goproMspGetSettingRevision(uint8_t settingId)
     return setting ? setting->revision : 0;
 }
 
+const uint8_t *goproMspGetSettingCapabilities(uint8_t settingId, uint8_t *count)
+{
+    goproMspCapabilities_t *capabilities = goproMspFindCapabilities(settingId);
+    if (!capabilities || !capabilities->valid || !count) {
+        return NULL;
+    }
+
+    *count = capabilities->count;
+    return capabilities->values;
+}
+
+uint8_t goproMspGetSettingCapabilitiesRevision(uint8_t settingId)
+{
+    goproMspCapabilities_t *capabilities = goproMspFindCapabilities(settingId);
+    return capabilities ? capabilities->revision : 0;
+}
+
 void goproMspProcessReply(mspPacket_t *reply)
 {
-    if (!reply || reply->cmd != MSP2_GP_SETTINGS_REPORT || sbufBytesRemaining(&reply->buf) < 2) {
+    if (!reply) {
+        return;
+    }
+
+    if (reply->cmd == MSP2_GP_SETTINGS_REPORT && sbufBytesRemaining(&reply->buf) >= 2) {
+        const uint8_t settingId = sbufReadU8(&reply->buf);
+        const uint8_t value = sbufReadU8(&reply->buf);
+        goproMspSetting_t *setting = goproMspFindSetting(settingId);
+        if (!setting) {
+            return;
+        }
+
+        setting->value = value;
+        setting->valid = true;
+        setting->revision++;
+        return;
+    }
+
+    if (reply->cmd != MSP2_GP_SETTING_CAPABILITIES_REPORT || sbufBytesRemaining(&reply->buf) < 2) {
         return;
     }
 
     const uint8_t settingId = sbufReadU8(&reply->buf);
-    const uint8_t value = sbufReadU8(&reply->buf);
-    goproMspSetting_t *setting = goproMspFindSetting(settingId);
-    if (!setting) {
+    const uint8_t count = sbufReadU8(&reply->buf);
+    if (count > GOPRO_MSP_MAX_SETTING_CAPABILITIES || sbufBytesRemaining(&reply->buf) != count) {
         return;
     }
 
-    setting->value = value;
-    setting->valid = true;
-    setting->revision++;
+    goproMspCapabilities_t *capabilities = goproMspFindCapabilities(settingId);
+    if (!capabilities) {
+        return;
+    }
+
+    for (uint8_t index = 0; index < count; index++) {
+        capabilities->values[index] = sbufReadU8(&reply->buf);
+    }
+    capabilities->count = count;
+    capabilities->valid = true;
+    capabilities->revision++;
 }

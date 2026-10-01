@@ -4942,6 +4942,22 @@ RAM_CODE mspResult_e mspFcProcessCommand(mspDescriptor_t srcDesc, mspPacket_t *c
             sbufWriteU8(dst, goproMspGetSettingRevision(settingId));
             sbufWriteU8(dst, value);
         }
+    } else if (cmdMSP == MSP2_GP_GET_SETTING_CAPABILITIES) {
+        if (sbufBytesRemaining(src) != 1) {
+            ret = MSP_RESULT_ERROR;
+        } else {
+            const uint8_t settingId = sbufReadU8(src);
+            uint8_t capabilityCount = 0;
+            const uint8_t *capabilities = goproMspGetSettingCapabilities(settingId, &capabilityCount);
+            goproMspSendGetSettingCapabilities(settingId);
+            sbufWriteU8(dst, settingId);
+            sbufWriteU8(dst, capabilities != NULL);
+            sbufWriteU8(dst, goproMspGetSettingCapabilitiesRevision(settingId));
+            sbufWriteU8(dst, capabilityCount);
+            for (uint8_t index = 0; index < capabilityCount; index++) {
+                sbufWriteU8(dst, capabilities[index]);
+            }
+        }
     } else if (cmdMSP == MSP2_GP_SET_SETTING) {
         if (sbufBytesRemaining(src) != 2) {
             ret = MSP_RESULT_ERROR;
@@ -4994,6 +5010,7 @@ RAM_CODE void mspFcProcessReply(mspPacket_t *reply)
 
     switch (reply->cmd) {
     case MSP2_GP_SETTINGS_REPORT:
+    case MSP2_GP_SETTING_CAPABILITIES_REPORT:
         goproMspProcessReply(reply);
         break;
     case MSP2_GP_SET_RESULT:

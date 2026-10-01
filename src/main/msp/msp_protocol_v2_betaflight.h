@@ -41,6 +41,8 @@
 #define MSP2_GP_SET_RESULT                  0x4002
 #define MSP2_GP_GET_SETTINGS                0x4003
 #define MSP2_GP_SETTINGS_REPORT             0x4004
+#define MSP2_GP_GET_SETTING_CAPABILITIES    0x4005
+#define MSP2_GP_SETTING_CAPABILITIES_REPORT 0x4006
 
 // MSP2_CLI_COMMAND response flags (byte following the u16 total-length header)
 #define MSP2_CLI_COMMAND_FLAG_TRUNCATED     (1 << 0) // output exceeded the pageable buffer
