@@ -4952,7 +4952,6 @@ RAM_CODE mspResult_e mspFcProcessCommand(mspDescriptor_t srcDesc, mspPacket_t *c
             goproMspSendGetSettingCapabilities(settingId);
             sbufWriteU8(dst, settingId);
             sbufWriteU8(dst, capabilities != NULL);
-            sbufWriteU8(dst, goproMspGetSettingCapabilitiesRevision(settingId));
             sbufWriteU8(dst, capabilityCount);
             for (uint8_t index = 0; index < capabilityCount; index++) {
                 sbufWriteU8(dst, capabilities[index]);

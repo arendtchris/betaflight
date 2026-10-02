@@ -33,5 +33,5 @@ bool goproMspSendGetSettingCapabilities(uint8_t settingId);
 bool goproMspGetSetting(uint8_t settingId, uint8_t *value);
 uint8_t goproMspGetSettingRevision(uint8_t settingId);
 const uint8_t *goproMspGetSettingCapabilities(uint8_t settingId, uint8_t *count);
-uint8_t goproMspGetSettingCapabilitiesRevision(uint8_t settingId);
+bool goproMspTakeSettingCapabilitiesUpdate(uint8_t settingId);
 void goproMspProcessReply(mspPacket_t *reply);

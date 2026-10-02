@@ -42,7 +42,7 @@ typedef struct {
 typedef struct {
     uint8_t values[GOPRO_MSP_MAX_SETTING_CAPABILITIES];
     uint8_t count;
-    uint8_t revision;
+    volatile bool updatePending;
     bool valid;
 } goproMspCapabilities_t;
 
@@ -134,10 +134,15 @@ const uint8_t *goproMspGetSettingCapabilities(uint8_t settingId, uint8_t *count)
     return capabilities->values;
 }
 
-uint8_t goproMspGetSettingCapabilitiesRevision(uint8_t settingId)
+bool goproMspTakeSettingCapabilitiesUpdate(uint8_t settingId)
 {
     goproMspCapabilities_t *capabilities = goproMspFindCapabilities(settingId);
-    return capabilities ? capabilities->revision : 0;
+    if (!capabilities || !capabilities->updatePending) {
+        return false;
+    }
+
+    capabilities->updatePending = false;
+    return true;
 }
 
 void goproMspProcessReply(mspPacket_t *reply)
@@ -180,5 +185,5 @@ void goproMspProcessReply(mspPacket_t *reply)
     }
     capabilities->count = count;
     capabilities->valid = true;
-    capabilities->revision++;
+    capabilities->updatePending = true;
 }
