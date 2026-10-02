@@ -33,6 +33,9 @@
 
 #define GOPRO_SETTING_RESOLUTION 2
 #define GOPRO_SETTING_FPS 3
+#define GOPRO_SETTING_VIDEO_LENS 121
+#define GOPRO_SETTING_HYPERSMOOTH 135
+#define GOPRO_MENU_SETTING_COUNT 4
 #define GOPRO_SETTING_RETRY_INTERVAL_MS 500
 #define GOPRO_SETTING_MAX_RETRIES 4
 #define GOPRO_MENU_OPTION_COUNT GOPRO_MSP_MAX_SETTING_CAPABILITIES
@@ -60,29 +63,51 @@ static const goproMenuOptionLabel_t fpsOptionLabels[] = {
     { 18, "480" }, { 19, "960" }, { 20, "800" },
 };
 
-static uint8_t resolutionIndex;
-static uint8_t fpsIndex;
-static uint8_t resolutionObservedValue;
-static uint8_t fpsObservedValue;
-static bool resolutionObservedValueValid;
-static bool fpsObservedValueValid;
-static uint8_t resolutionValues[GOPRO_MENU_OPTION_COUNT];
-static uint8_t fpsValues[GOPRO_MENU_OPTION_COUNT];
-static uint8_t resolutionOptionCount;
-static uint8_t fpsOptionCount;
-static const char *resolutionLabels[GOPRO_MENU_OPTION_COUNT] = { "WAIT" };
-static const char *fpsLabels[GOPRO_MENU_OPTION_COUNT] = { "WAIT" };
-static char resolutionFallbackLabels[GOPRO_MENU_OPTION_COUNT][6];
-static char fpsFallbackLabels[GOPRO_MENU_OPTION_COUNT][6];
+static const goproMenuOptionLabel_t videoLensOptionLabels[] = {
+    { 0, "WIDE" }, { 2, "NARROW" }, { 3, "SUPERVIEW" }, { 4, "LINEAR" },
+    { 7, "MAX SUPERVIEW" }, { 8, "HORIZON LEVEL" }, { 9, "HYPERVIEW" },
+    { 10, "HORIZON LOCK" }, { 11, "MAX HYPERVIEW" }, { 12, "ULTRA SUPERVIEW" },
+    { 13, "ULTRA WIDE" }, { 14, "ULTRA LINEAR" }, { 104, "ULTRA HYPERVIEW" },
+};
+
+static const goproMenuOptionLabel_t hypersmoothOptionLabels[] = {
+    { 0, "OFF" }, { 1, "LOW" }, { 2, "HIGH" }, { 3, "BOOST" },
+    { 4, "AUTO BOOST" }, { 100, "STANDARD" },
+};
+
+static const uint8_t menuSettingIds[GOPRO_MENU_SETTING_COUNT] = {
+    GOPRO_SETTING_RESOLUTION, GOPRO_SETTING_FPS, GOPRO_SETTING_VIDEO_LENS, GOPRO_SETTING_HYPERSMOOTH
+};
+static uint8_t settingIndices[GOPRO_MENU_SETTING_COUNT];
+static uint8_t settingObservedValues[GOPRO_MENU_SETTING_COUNT];
+static bool settingObservedValuesValid[GOPRO_MENU_SETTING_COUNT];
+static uint8_t settingValues[GOPRO_MENU_SETTING_COUNT][GOPRO_MENU_OPTION_COUNT];
+static uint8_t settingOptionCounts[GOPRO_MENU_SETTING_COUNT];
+static const char *settingLabels[GOPRO_MENU_SETTING_COUNT][GOPRO_MENU_OPTION_COUNT] = {
+    { "WAIT" }, { "WAIT" }, { "WAIT" }, { "WAIT" }
+};
+static char settingFallbackLabels[GOPRO_MENU_SETTING_COUNT][GOPRO_MENU_OPTION_COUNT][6];
 static uint32_t settingRequestMs;
 static uint8_t settingRequestRetries;
-static bool resolutionRequestActive;
-static bool fpsRequestActive;
-static bool resolutionCapabilitiesRequestActive;
-static bool fpsCapabilitiesRequestActive;
+static bool settingRequestActive[GOPRO_MENU_SETTING_COUNT];
+static bool capabilitiesRequestActive[GOPRO_MENU_SETTING_COUNT];
 
-static OSD_TAB_t resolutionTab = { &resolutionIndex, 0, resolutionLabels };
-static OSD_TAB_t fpsTab = { &fpsIndex, 0, fpsLabels };
+static OSD_TAB_t settingTabs[GOPRO_MENU_SETTING_COUNT] = {
+    { &settingIndices[0], 0, settingLabels[0] },
+    { &settingIndices[1], 0, settingLabels[1] },
+    { &settingIndices[2], 0, settingLabels[2] },
+    { &settingIndices[3], 0, settingLabels[3] },
+};
+
+static int8_t cmsx_menuGoproFindSettingIndex(uint8_t settingId)
+{
+    for (uint8_t index = 0; index < GOPRO_MENU_SETTING_COUNT; index++) {
+        if (menuSettingIds[index] == settingId) {
+            return index;
+        }
+    }
+    return -1;
+}
 
 static void cmsx_menuGoproSelectCurrentValue(uint8_t settingId, const uint8_t *values, uint8_t count, uint8_t *selectedIndex)
 {
@@ -101,18 +126,25 @@ static void cmsx_menuGoproSelectCurrentValue(uint8_t settingId, const uint8_t *v
 
 static const char *cmsx_menuGoproFindOptionLabel(uint8_t settingId, uint8_t value, uint8_t index)
 {
-    const goproMenuOptionLabel_t *options;
-    uint8_t optionCount;
-    char (*fallbackLabels)[6];
+    const goproMenuOptionLabel_t *options = NULL;
+    uint8_t optionCount = 0;
+    const int8_t settingIndex = cmsx_menuGoproFindSettingIndex(settingId);
+    if (settingIndex < 0) {
+        return "?";
+    }
 
     if (settingId == GOPRO_SETTING_RESOLUTION) {
         options = resolutionOptionLabels;
         optionCount = ARRAYLEN(resolutionOptionLabels);
-        fallbackLabels = resolutionFallbackLabels;
-    } else {
+    } else if (settingId == GOPRO_SETTING_FPS) {
         options = fpsOptionLabels;
         optionCount = ARRAYLEN(fpsOptionLabels);
-        fallbackLabels = fpsFallbackLabels;
+    } else if (settingId == GOPRO_SETTING_VIDEO_LENS) {
+        options = videoLensOptionLabels;
+        optionCount = ARRAYLEN(videoLensOptionLabels);
+    } else if (settingId == GOPRO_SETTING_HYPERSMOOTH) {
+        options = hypersmoothOptionLabels;
+        optionCount = ARRAYLEN(hypersmoothOptionLabels);
     }
 
     for (uint8_t option = 0; option < optionCount; option++) {
@@ -121,7 +153,7 @@ static const char *cmsx_menuGoproFindOptionLabel(uint8_t settingId, uint8_t valu
         }
     }
 
-    char *fallback = fallbackLabels[index];
+    char *fallback = settingFallbackLabels[(uint8_t)settingIndex][index];
     fallback[0] = 'I';
     fallback[1] = 'D';
     if (value >= 100) {
@@ -137,121 +169,124 @@ static const char *cmsx_menuGoproFindOptionLabel(uint8_t settingId, uint8_t valu
         fallback[2] = '0' + value;
         fallback[3] = '\0';
     }
-    return fallbackLabels[index];
+    return settingFallbackLabels[(uint8_t)settingIndex][index];
 }
 
 static bool cmsx_menuGoproBuildCapabilities(uint8_t settingId)
 {
+    const int8_t settingIndex = cmsx_menuGoproFindSettingIndex(settingId);
+    if (settingIndex < 0) {
+        return false;
+    }
+
     uint8_t count = 0;
     const uint8_t *values = goproMspGetSettingCapabilities(settingId, &count);
     if (!values) {
         return false;
     }
 
-    uint8_t *menuValues;
-    const char **menuLabels;
-    uint8_t *menuCount;
-    OSD_TAB_t *menuTab;
-    uint8_t *selectedIndex;
-
-    if (settingId == GOPRO_SETTING_RESOLUTION) {
-        menuValues = resolutionValues;
-        menuLabels = resolutionLabels;
-        menuCount = &resolutionOptionCount;
-        menuTab = &resolutionTab;
-        selectedIndex = &resolutionIndex;
-    } else {
-        menuValues = fpsValues;
-        menuLabels = fpsLabels;
-        menuCount = &fpsOptionCount;
-        menuTab = &fpsTab;
-        selectedIndex = &fpsIndex;
-    }
-
-    *menuCount = count;
+    const uint8_t settingSlot = (uint8_t)settingIndex;
+    settingOptionCounts[settingSlot] = count;
     for (uint8_t index = 0; index < count; index++) {
-        menuValues[index] = values[index];
-        menuLabels[index] = cmsx_menuGoproFindOptionLabel(settingId, values[index], index);
+        settingValues[settingSlot][index] = values[index];
+        settingLabels[settingSlot][index] = cmsx_menuGoproFindOptionLabel(settingId, values[index], index);
     }
     if (count == 0) {
-        menuLabels[0] = "NONE";
+        settingLabels[settingSlot][0] = "NONE";
     }
-    if (*selectedIndex >= count) {
-        *selectedIndex = 0;
+    if (settingIndices[settingSlot] >= count) {
+        settingIndices[settingSlot] = 0;
     }
-    menuTab->max = count > 0 ? count - 1 : 0;
-    cmsx_menuGoproSelectCurrentValue(settingId, menuValues, count, selectedIndex);
+    settingTabs[settingSlot].max = count > 0 ? count - 1 : 0;
+    cmsx_menuGoproSelectCurrentValue(settingId, settingValues[settingSlot], count, &settingIndices[settingSlot]);
     return true;
 }
 
-static void cmsx_menuGoproSyncSetting(uint8_t settingId, const uint8_t *values, uint8_t valueCount, uint8_t *selectedIndex)
+static bool cmsx_menuGoproSyncSetting(uint8_t settingId)
 {
-    uint8_t *observedValue;
-    bool *observedValueValid;
-    if (settingId == GOPRO_SETTING_RESOLUTION) {
-        observedValue = &resolutionObservedValue;
-        observedValueValid = &resolutionObservedValueValid;
-    } else {
-        observedValue = &fpsObservedValue;
-        observedValueValid = &fpsObservedValueValid;
+    const int8_t settingIndex = cmsx_menuGoproFindSettingIndex(settingId);
+    if (settingIndex < 0) {
+        return false;
     }
+    const uint8_t settingSlot = (uint8_t)settingIndex;
 
     uint8_t currentValue;
     if (!goproMspGetSetting(settingId, &currentValue)
-        || (*observedValueValid && currentValue == *observedValue)) {
-        return;
+        || (settingObservedValuesValid[settingSlot] && currentValue == settingObservedValues[settingSlot])) {
+        return false;
     }
 
-    *observedValue = currentValue;
-    *observedValueValid = true;
-    cmsx_menuGoproSelectCurrentValue(settingId, values, valueCount, selectedIndex);
+    settingObservedValues[settingSlot] = currentValue;
+    settingObservedValuesValid[settingSlot] = true;
+    cmsx_menuGoproSelectCurrentValue(settingId, settingValues[settingSlot], settingOptionCounts[settingSlot], &settingIndices[settingSlot]);
+    return true;
+}
+
+static void cmsx_menuGoproRequestCapabilities(uint8_t settingSlot)
+{
+    if (settingSlot >= GOPRO_MENU_SETTING_COUNT) {
+        return;
+    }
+    goproMspTakeSettingCapabilitiesUpdate(menuSettingIds[settingSlot]);
+    capabilitiesRequestActive[settingSlot] = goproMspSendGetSettingCapabilities(menuSettingIds[settingSlot]);
+    settingRequestMs = millis();
+    settingRequestRetries = 0;
+}
+
+static const void *cmsx_menuGoproSetSetting(displayPort_t *display, const void *self, uint8_t settingSlot)
+{
+    UNUSED(display);
+    UNUSED(self);
+    if (settingSlot < GOPRO_MENU_SETTING_COUNT && settingIndices[settingSlot] < settingOptionCounts[settingSlot]) {
+        const uint8_t settingId = menuSettingIds[settingSlot];
+        const uint8_t value = settingValues[settingSlot][settingIndices[settingSlot]];
+        goproMspSendSetSetting(settingId, value);
+        settingRequestActive[settingSlot] = goproMspSendGetSetting(settingId);
+        if (settingSlot == 0) {
+            settingRequestActive[1] = goproMspSendGetSetting(menuSettingIds[1]);
+        }
+        if (settingSlot + 1 < GOPRO_MENU_SETTING_COUNT) {
+            cmsx_menuGoproRequestCapabilities(settingSlot + 1);
+        }
+        settingRequestMs = millis();
+        settingRequestRetries = 0;
+    }
+    return NULL;
 }
 
 static const void *cmsx_menuGoproSetResolution(displayPort_t *display, const void *self)
 {
-    UNUSED(display);
-    UNUSED(self);
-    resolutionRequestActive = false;
-    resolutionCapabilitiesRequestActive = false;
-    if (resolutionIndex < resolutionOptionCount) {
-        goproMspSendSetSetting(GOPRO_SETTING_RESOLUTION, resolutionValues[resolutionIndex]);
-        resolutionRequestActive = goproMspSendGetSetting(GOPRO_SETTING_RESOLUTION);
-        fpsRequestActive = goproMspSendGetSetting(GOPRO_SETTING_FPS);
-        goproMspTakeSettingCapabilitiesUpdate(GOPRO_SETTING_FPS);
-        fpsCapabilitiesRequestActive = goproMspSendGetSettingCapabilities(GOPRO_SETTING_FPS);
-        settingRequestMs = millis();
-        settingRequestRetries = 0;
-    }
-    return NULL;
+    return cmsx_menuGoproSetSetting(display, self, 0);
 }
 
 static const void *cmsx_menuGoproSetFps(displayPort_t *display, const void *self)
 {
-    UNUSED(display);
-    UNUSED(self);
-    fpsRequestActive = false;
-    if (fpsIndex < fpsOptionCount) {
-        goproMspSendSetSetting(GOPRO_SETTING_FPS, fpsValues[fpsIndex]);
-        fpsRequestActive = true;
-        settingRequestMs = millis();
-        settingRequestRetries = 0;
-    }
-    return NULL;
+    return cmsx_menuGoproSetSetting(display, self, 1);
+}
+
+static const void *cmsx_menuGoproSetVideoLens(displayPort_t *display, const void *self)
+{
+    return cmsx_menuGoproSetSetting(display, self, 2);
+}
+
+static const void *cmsx_menuGoproSetHypersmooth(displayPort_t *display, const void *self)
+{
+    return cmsx_menuGoproSetSetting(display, self, 3);
 }
 
 static const void *cmsx_menuGoproOnEnter(displayPort_t *display)
 {
     UNUSED(display);
 
-    cmsx_menuGoproBuildCapabilities(GOPRO_SETTING_RESOLUTION);
-    cmsx_menuGoproBuildCapabilities(GOPRO_SETTING_FPS);
+    for (uint8_t settingSlot = 0; settingSlot < GOPRO_MENU_SETTING_COUNT; settingSlot++) {
+        goproMspTakeSettingCapabilitiesUpdate(menuSettingIds[settingSlot]);
+        cmsx_menuGoproBuildCapabilities(menuSettingIds[settingSlot]);
+        settingRequestActive[settingSlot] = goproMspSendGetSetting(menuSettingIds[settingSlot]);
+        capabilitiesRequestActive[settingSlot] = false;
+    }
     settingRequestMs = millis();
     settingRequestRetries = 0;
-    resolutionRequestActive = goproMspSendGetSetting(GOPRO_SETTING_RESOLUTION);
-    fpsRequestActive = goproMspSendGetSetting(GOPRO_SETTING_FPS);
-    goproMspTakeSettingCapabilitiesUpdate(GOPRO_SETTING_RESOLUTION);
-    resolutionCapabilitiesRequestActive = goproMspSendGetSettingCapabilities(GOPRO_SETTING_RESOLUTION);
-    fpsCapabilitiesRequestActive = false;
+    cmsx_menuGoproRequestCapabilities(0);
     return NULL;
 }
 
@@ -260,38 +295,33 @@ static const void *cmsx_menuGoproOnDisplayUpdate(displayPort_t *display, const O
     UNUSED(display);
     UNUSED(selected);
 
-    cmsx_menuGoproSyncSetting(GOPRO_SETTING_RESOLUTION, resolutionValues, resolutionOptionCount, &resolutionIndex);
-    cmsx_menuGoproSyncSetting(GOPRO_SETTING_FPS, fpsValues, fpsOptionCount, &fpsIndex);
-
-    if (goproMspTakeSettingCapabilitiesUpdate(GOPRO_SETTING_RESOLUTION)) {
-        cmsx_menuGoproBuildCapabilities(GOPRO_SETTING_RESOLUTION);
-        resolutionCapabilitiesRequestActive = false;
-        goproMspTakeSettingCapabilitiesUpdate(GOPRO_SETTING_FPS);
-        fpsCapabilitiesRequestActive = goproMspSendGetSettingCapabilities(GOPRO_SETTING_FPS);
-        settingRequestMs = millis();
-        settingRequestRetries = 0;
-    }
-    if (goproMspTakeSettingCapabilitiesUpdate(GOPRO_SETTING_FPS)) {
-        cmsx_menuGoproBuildCapabilities(GOPRO_SETTING_FPS);
-        fpsCapabilitiesRequestActive = false;
+    for (uint8_t settingSlot = 0; settingSlot < GOPRO_MENU_SETTING_COUNT; settingSlot++) {
+        if (cmsx_menuGoproSyncSetting(menuSettingIds[settingSlot])) {
+            settingRequestActive[settingSlot] = false;
+        }
+        if (goproMspTakeSettingCapabilitiesUpdate(menuSettingIds[settingSlot])) {
+            cmsx_menuGoproBuildCapabilities(menuSettingIds[settingSlot]);
+            capabilitiesRequestActive[settingSlot] = false;
+            cmsx_menuGoproRequestCapabilities(settingSlot + 1);
+        }
     }
 
-    if ((resolutionRequestActive || fpsRequestActive || resolutionCapabilitiesRequestActive || fpsCapabilitiesRequestActive)
+    bool requestActive = false;
+    for (uint8_t settingSlot = 0; settingSlot < GOPRO_MENU_SETTING_COUNT; settingSlot++) {
+        requestActive |= settingRequestActive[settingSlot] || capabilitiesRequestActive[settingSlot];
+    }
+    if (requestActive
         && settingRequestRetries < GOPRO_SETTING_MAX_RETRIES
         && cmp32(millis(), settingRequestMs) >= GOPRO_SETTING_RETRY_INTERVAL_MS) {
         settingRequestMs = millis();
         settingRequestRetries++;
-        if (resolutionRequestActive) {
-            resolutionRequestActive = goproMspSendGetSetting(GOPRO_SETTING_RESOLUTION);
-        }
-        if (fpsRequestActive) {
-            fpsRequestActive = goproMspSendGetSetting(GOPRO_SETTING_FPS);
-        }
-        if (resolutionCapabilitiesRequestActive) {
-            resolutionCapabilitiesRequestActive = goproMspSendGetSettingCapabilities(GOPRO_SETTING_RESOLUTION);
-        }
-        if (fpsCapabilitiesRequestActive) {
-            fpsCapabilitiesRequestActive = goproMspSendGetSettingCapabilities(GOPRO_SETTING_FPS);
+        for (uint8_t settingSlot = 0; settingSlot < GOPRO_MENU_SETTING_COUNT; settingSlot++) {
+            if (settingRequestActive[settingSlot]) {
+                settingRequestActive[settingSlot] = goproMspSendGetSetting(menuSettingIds[settingSlot]);
+            }
+            if (capabilitiesRequestActive[settingSlot]) {
+                capabilitiesRequestActive[settingSlot] = goproMspSendGetSettingCapabilities(menuSettingIds[settingSlot]);
+            }
         }
     }
 
@@ -299,8 +329,10 @@ static const void *cmsx_menuGoproOnDisplayUpdate(displayPort_t *display, const O
 }
 
 static const OSD_Entry menuGoproEntries[] = {
-    { "RESOLUTION", OME_TAB, cmsx_menuGoproSetResolution, &resolutionTab },
-    { "FPS", OME_TAB, cmsx_menuGoproSetFps, &fpsTab },
+    { "RESOLUTION", OME_TAB, cmsx_menuGoproSetResolution, &settingTabs[0] },
+    { "FPS", OME_TAB, cmsx_menuGoproSetFps, &settingTabs[1] },
+    { "VIDEO LENS", OME_TAB, cmsx_menuGoproSetVideoLens, &settingTabs[2] },
+    { "HYPERSMOOTH", OME_TAB, cmsx_menuGoproSetHypersmooth, &settingTabs[3] },
     { "BACK", OME_Back, NULL, NULL },
     { NULL, OME_END, NULL, NULL }
 };

@@ -32,6 +32,8 @@
 
 #define GOPRO_SETTING_RESOLUTION 2
 #define GOPRO_SETTING_FPS 3
+#define GOPRO_SETTING_VIDEO_LENS 121
+#define GOPRO_SETTING_HYPERSMOOTH 135
 
 typedef struct {
     uint8_t value;
@@ -48,8 +50,12 @@ typedef struct {
 
 static goproMspSetting_t resolutionSetting;
 static goproMspSetting_t fpsSetting;
+static goproMspSetting_t videoLensSetting;
+static goproMspSetting_t hypersmoothSetting;
 static goproMspCapabilities_t resolutionCapabilities;
 static goproMspCapabilities_t fpsCapabilities;
+static goproMspCapabilities_t videoLensCapabilities;
+static goproMspCapabilities_t hypersmoothCapabilities;
 
 static goproMspSetting_t *goproMspFindSetting(uint8_t settingId)
 {
@@ -58,6 +64,10 @@ static goproMspSetting_t *goproMspFindSetting(uint8_t settingId)
         return &resolutionSetting;
     case GOPRO_SETTING_FPS:
         return &fpsSetting;
+    case GOPRO_SETTING_VIDEO_LENS:
+        return &videoLensSetting;
+    case GOPRO_SETTING_HYPERSMOOTH:
+        return &hypersmoothSetting;
     default:
         return NULL;
     }
@@ -70,6 +80,10 @@ static goproMspCapabilities_t *goproMspFindCapabilities(uint8_t settingId)
         return &resolutionCapabilities;
     case GOPRO_SETTING_FPS:
         return &fpsCapabilities;
+    case GOPRO_SETTING_VIDEO_LENS:
+        return &videoLensCapabilities;
+    case GOPRO_SETTING_HYPERSMOOTH:
+        return &hypersmoothCapabilities;
     default:
         return NULL;
     }
