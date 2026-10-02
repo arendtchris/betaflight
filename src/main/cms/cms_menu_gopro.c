@@ -62,8 +62,10 @@ static const goproMenuOptionLabel_t fpsOptionLabels[] = {
 
 static uint8_t resolutionIndex;
 static uint8_t fpsIndex;
-static uint8_t resolutionRevision;
-static uint8_t fpsRevision;
+static uint8_t resolutionObservedValue;
+static uint8_t fpsObservedValue;
+static bool resolutionObservedValueValid;
+static bool fpsObservedValueValid;
 static uint8_t resolutionCapabilitiesRevision;
 static uint8_t fpsCapabilitiesRevision;
 static uint8_t resolutionValues[GOPRO_MENU_OPTION_COUNT];
@@ -184,17 +186,27 @@ static bool cmsx_menuGoproBuildCapabilities(uint8_t settingId)
     return true;
 }
 
-static bool cmsx_menuGoproSyncSetting(uint8_t settingId, const uint8_t *values, uint8_t valueCount, uint8_t *selectedIndex, uint8_t *revision)
+static void cmsx_menuGoproSyncSetting(uint8_t settingId, const uint8_t *values, uint8_t valueCount, uint8_t *selectedIndex)
 {
-    const uint8_t newRevision = goproMspGetSettingRevision(settingId);
-    if (newRevision == *revision) {
-        return false;
+    uint8_t *observedValue;
+    bool *observedValueValid;
+    if (settingId == GOPRO_SETTING_RESOLUTION) {
+        observedValue = &resolutionObservedValue;
+        observedValueValid = &resolutionObservedValueValid;
+    } else {
+        observedValue = &fpsObservedValue;
+        observedValueValid = &fpsObservedValueValid;
     }
 
-    *revision = newRevision;
+    uint8_t currentValue;
+    if (!goproMspGetSetting(settingId, &currentValue)
+        || (*observedValueValid && currentValue == *observedValue)) {
+        return;
+    }
 
+    *observedValue = currentValue;
+    *observedValueValid = true;
     cmsx_menuGoproSelectCurrentValue(settingId, values, valueCount, selectedIndex);
-    return true;
 }
 
 static const void *cmsx_menuGoproSetResolution(displayPort_t *display, const void *self)
@@ -205,11 +217,9 @@ static const void *cmsx_menuGoproSetResolution(displayPort_t *display, const voi
     resolutionCapabilitiesRequestActive = false;
     if (resolutionIndex < resolutionOptionCount) {
         goproMspSendSetSetting(GOPRO_SETTING_RESOLUTION, resolutionValues[resolutionIndex]);
-        resolutionRevision = goproMspGetSettingRevision(GOPRO_SETTING_RESOLUTION);
         resolutionRequestActive = goproMspSendGetSetting(GOPRO_SETTING_RESOLUTION);
-        fpsRevision = goproMspGetSettingRevision(GOPRO_SETTING_FPS);
-        fpsCapabilitiesRevision = goproMspGetSettingCapabilitiesRevision(GOPRO_SETTING_FPS);
         fpsRequestActive = goproMspSendGetSetting(GOPRO_SETTING_FPS);
+        fpsCapabilitiesRevision = goproMspGetSettingCapabilitiesRevision(GOPRO_SETTING_FPS);
         fpsCapabilitiesRequestActive = goproMspSendGetSettingCapabilities(GOPRO_SETTING_FPS);
         settingRequestMs = millis();
         settingRequestRetries = 0;
@@ -224,7 +234,6 @@ static const void *cmsx_menuGoproSetFps(displayPort_t *display, const void *self
     fpsRequestActive = false;
     if (fpsIndex < fpsOptionCount) {
         goproMspSendSetSetting(GOPRO_SETTING_FPS, fpsValues[fpsIndex]);
-        fpsRevision = goproMspGetSettingRevision(GOPRO_SETTING_FPS);
         fpsRequestActive = true;
         settingRequestMs = millis();
         settingRequestRetries = 0;
@@ -236,8 +245,6 @@ static const void *cmsx_menuGoproOnEnter(displayPort_t *display)
 {
     UNUSED(display);
 
-    resolutionRevision = goproMspGetSettingRevision(GOPRO_SETTING_RESOLUTION);
-    fpsRevision = goproMspGetSettingRevision(GOPRO_SETTING_FPS);
     resolutionCapabilitiesRevision = goproMspGetSettingCapabilitiesRevision(GOPRO_SETTING_RESOLUTION);
     cmsx_menuGoproBuildCapabilities(GOPRO_SETTING_RESOLUTION);
     cmsx_menuGoproBuildCapabilities(GOPRO_SETTING_FPS);
@@ -255,12 +262,8 @@ static const void *cmsx_menuGoproOnDisplayUpdate(displayPort_t *display, const O
     UNUSED(display);
     UNUSED(selected);
 
-    if (cmsx_menuGoproSyncSetting(GOPRO_SETTING_RESOLUTION, resolutionValues, resolutionOptionCount, &resolutionIndex, &resolutionRevision)) {
-        resolutionRequestActive = false;
-    }
-    if (cmsx_menuGoproSyncSetting(GOPRO_SETTING_FPS, fpsValues, fpsOptionCount, &fpsIndex, &fpsRevision)) {
-        fpsRequestActive = false;
-    }
+    cmsx_menuGoproSyncSetting(GOPRO_SETTING_RESOLUTION, resolutionValues, resolutionOptionCount, &resolutionIndex);
+    cmsx_menuGoproSyncSetting(GOPRO_SETTING_FPS, fpsValues, fpsOptionCount, &fpsIndex);
 
     const uint8_t newResolutionCapabilitiesRevision = goproMspGetSettingCapabilitiesRevision(GOPRO_SETTING_RESOLUTION);
     if (newResolutionCapabilitiesRevision != resolutionCapabilitiesRevision) {
