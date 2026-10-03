@@ -84,7 +84,7 @@ static uint32_t mspSerialBaudRate(uint8_t baud)
     return baudRates[baud];
 }
 
-static void mspSerialOpenPort(unsigned *portIndex, serialPortIdentifier_e identifier, uint8_t baud)
+static void mspSerialOpenPort(unsigned *portIndex, serialPortIdentifier_e identifier, serialPortFunction_e function, uint8_t baud)
 {
     while (*portIndex < ARRAYLEN(mspPorts) && mspPorts[*portIndex].port) {
         (*portIndex)++;
@@ -93,19 +93,19 @@ static void mspSerialOpenPort(unsigned *portIndex, serialPortIdentifier_e identi
         return;
     }
 
-    serialPort_t *serialPort = openSerialPort(identifier, FUNCTION_MSP, NULL, NULL,
+    serialPort_t *serialPort = openSerialPort(identifier, function, NULL, NULL,
                                               mspSerialBaudRate(baud), MODE_RXTX, mspSerialPortOptions(identifier));
     if (!serialPort) {
         return;
     }
 
-    const bool sharedWithTelemetry = isSerialPortShared(identifier, FUNCTION_MSP, TELEMETRY_PORT_FUNCTIONS_MASK);
+    const bool sharedWithTelemetry = function == FUNCTION_MSP
+        && isSerialPortShared(identifier, FUNCTION_MSP, TELEMETRY_PORT_FUNCTIONS_MASK);
     resetMspPort(&mspPorts[*portIndex], serialPort, sharedWithTelemetry);
 
     (*portIndex)++;
 }
 
-#if IMPLIED_MSP_PORT_COUNT > 0
 static bool mspSerialPortIsOpen(serialPortIdentifier_e identifier)
 {
     for (const mspPort_t *mspPort = mspPorts; mspPort < ARRAYEND(mspPorts); mspPort++) {
@@ -116,7 +116,6 @@ static bool mspSerialPortIsOpen(serialPortIdentifier_e identifier)
 
     return false;
 }
-#endif
 
 void mspSerialAllocatePorts(void)
 {
@@ -128,7 +127,7 @@ void mspSerialAllocatePorts(void)
             continue;
         }
 
-        mspSerialOpenPort(&portIndex, identifier, mspConfig()->msp_baud[slot]);
+        mspSerialOpenPort(&portIndex, identifier, FUNCTION_MSP, mspConfig()->msp_baud[slot]);
     }
 
 #if IMPLIED_MSP_PORT_COUNT > 0
@@ -143,9 +142,14 @@ void mspSerialAllocatePorts(void)
             continue;
         }
 
-        mspSerialOpenPort(&portIndex, impliedPorts[i], serialDefaultPortBaud(SERIAL_BAUD_MSP));
+        mspSerialOpenPort(&portIndex, impliedPorts[i], FUNCTION_MSP, serialDefaultPortBaud(SERIAL_BAUD_MSP));
     }
 #endif
+
+    const serialPortIdentifier_e goproIdentifier = mspConfig()->gopro_msp_uart;
+    if (goproIdentifier != SERIAL_PORT_NONE && !mspSerialPortIsOpen(goproIdentifier)) {
+        mspSerialOpenPort(&portIndex, goproIdentifier, FUNCTION_GOPRO_MSP, mspConfig()->gopro_msp_baud);
+    }
 }
 
 void mspSerialReleasePortIfAllocated(serialPort_t *serialPort)
@@ -385,7 +389,7 @@ static int mspSerialEncode(mspPort_t *msp, mspPacket_t *packet, mspVersion_e msp
 {
     static const uint8_t mspMagic[MSP_VERSION_COUNT] = MSP_VERSION_MAGIC_INITIALIZER;
     const int dataLen = sbufBytesRemaining(&packet->buf);
-    uint8_t hdrBuf[16] = { '$', mspMagic[mspVersion], packet->result == MSP_RESULT_ERROR ? '!' : '>'};
+    uint8_t hdrBuf[16] = { '$', mspMagic[mspVersion], packet->direction == MSP_DIRECTION_REQUEST ? '<' : (packet->result == MSP_RESULT_ERROR ? '!' : '>')};
     uint8_t crcBuf[2];
     uint8_t checksum;
     int hdrLen = 3;
@@ -707,7 +711,7 @@ void mspSerialInit(void)
     mspSerialAllocatePorts();
 }
 
-int mspSerialPush(serialPortIdentifier_e port, uint8_t cmd, uint8_t *data, int datalen, mspDirection_e direction, mspVersion_e mspVersion)
+int mspSerialPush(serialPortIdentifier_e port, uint16_t cmd, uint8_t *data, int datalen, mspDirection_e direction, mspVersion_e mspVersion)
 {
     int ret = 0;
 

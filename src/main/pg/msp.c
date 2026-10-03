@@ -54,6 +54,8 @@ void pgResetFn_mspConfig(mspConfig_t *mspConfig)
         mspConfig->msp_uart[i] = SERIAL_PORT_NONE;
         mspConfig->msp_baud[i] = BAUD_115200;
     }
+    mspConfig->gopro_msp_uart = SERIAL_PORT_NONE;
+    mspConfig->gopro_msp_baud = BAUD_115200;
 
     // The first port is always MSP so a freshly flashed board stays reachable.
     unsigned slot = 0;

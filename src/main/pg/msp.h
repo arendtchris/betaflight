@@ -29,6 +29,8 @@ typedef struct mspConfig_s {
     uint8_t halfDuplex; // allow msp to operate in half duplex mode
     int8_t msp_uart[MAX_MSP_PORT_COUNT];  // serialPortIdentifier_e per slot; SERIAL_PORT_NONE = unused
     uint8_t msp_baud[MAX_MSP_PORT_COUNT]; // baudRate_e index per slot
+    int8_t gopro_msp_uart; // serialPortIdentifier_e; dedicated GoPro MSP UART
+    uint8_t gopro_msp_baud; // baudRate_e index
 } mspConfig_t;
 
 PG_DECLARE(mspConfig_t, mspConfig);

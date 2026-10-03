@@ -37,6 +37,7 @@
 #include "cms/cms_menu_blackbox.h"
 #include "cms/cms_menu_failsafe.h"
 #include "cms/cms_menu_firmware.h"
+#include "cms/cms_menu_gopro.h"
 #include "cms/cms_menu_ledstrip.h"
 #include "cms/cms_menu_misc.h"
 #include "cms/cms_menu_osd.h"
@@ -90,6 +91,7 @@ static const OSD_Entry menuFeaturesEntries[] =
 #if defined(USE_BLACKBOX)
     {"BLACKBOX", OME_Submenu, cmsMenuChange, &cmsx_menuBlackbox},
 #endif
+    {"GOPRO", OME_Submenu, cmsMenuChange, &cmsx_menuGopro},
 #if defined(USE_VTX_CONTROL)
 #if defined(USE_VTX_RTC6705) || defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP) || defined(USE_VTX_MSP)
     {"VTX", OME_Funcall, cmsSelectVtx, NULL},
